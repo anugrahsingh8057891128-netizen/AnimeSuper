@@ -1,0 +1,1563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Anime Super</title>
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+
+body{
+  background:#0b0b0f;
+  color:#fff;
+  font-family:Arial,sans-serif;
+}
+
+header{
+  min-height:60px;
+  background:#15151d;
+  display:flex;
+  align-items:center;
+  padding:10px 15px;
+  gap:15px;
+  position:sticky;
+  top:0;
+  z-index:100;
+}
+
+.logo{
+  font-size:22px;
+  font-weight:bold;
+  color:#ff3b81;
+  white-space:nowrap;
+}
+
+.search{
+  flex:1;
+  max-width:500px;
+  margin:auto;
+}
+
+.search input{
+  width:100%;
+  background:#24242e;
+  border:none;
+  outline:none;
+  color:#fff;
+  padding:11px 15px;
+  border-radius:20px;
+}
+
+main{padding:18px}
+
+.page{display:none}
+.page.active{display:block}
+
+.home-title{
+  font-size:22px;
+  margin-bottom:15px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(145px,1fr));
+  gap:15px;
+}
+
+.card{
+  background:#15151d;
+  border-radius:10px;
+  overflow:hidden;
+  cursor:pointer;
+  transition:.2s;
+}
+
+.card:hover{
+  transform:translateY(-3px);
+}
+
+.card img{
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  display:block;
+}
+
+.card-title{
+  padding:10px;
+  font-size:14px;
+  font-weight:bold;
+  line-height:1.3;
+}
+
+.details{
+  max-width:900px;
+  margin:auto;
+}
+
+.back{
+  background:#24242e;
+  border:none;
+  color:#fff;
+  padding:9px 15px;
+  border-radius:7px;
+  cursor:pointer;
+  margin-bottom:15px;
+}
+
+.detail-top{
+  display:flex;
+  gap:20px;
+}
+
+.poster{
+  width:220px;
+  height:320px;
+  object-fit:cover;
+  border-radius:10px;
+}
+
+.info{flex:1}
+
+.info h1{
+  font-size:28px;
+  margin-bottom:12px;
+}
+
+.info p{
+  color:#bbb;
+  line-height:1.6;
+  margin-bottom:15px;
+}
+
+.watch-btn{
+  background:#ff3b81;
+  color:#fff;
+  border:none;
+  padding:11px 20px;
+  border-radius:7px;
+  cursor:pointer;
+  font-weight:bold;
+}
+
+.season-bar{
+  margin-top:25px;
+  margin-bottom:15px;
+}
+
+.season-select,
+.player-select{
+  background:#24242e;
+  color:#fff;
+  border:1px solid #333;
+  padding:10px 13px;
+  border-radius:7px;
+  outline:none;
+}
+
+.episodes{margin-top:20px}
+.episodes h2{margin-bottom:12px}
+
+.episode-list{
+  display:grid;
+  grid-template-columns:repeat(auto-fill,minmax(70px,1fr));
+  gap:8px;
+}
+
+.episode{
+  background:#24242e;
+  padding:11px;
+  text-align:center;
+  border-radius:6px;
+  cursor:pointer;
+}
+
+.episode:hover{
+  background:#ff3b81;
+}
+
+.player-page{
+  max-width:1000px;
+  margin:auto;
+}
+
+.player-title{
+  margin-bottom:15px;
+}
+
+.player-box{
+  width:100%;
+  background:#000;
+  border-radius:10px;
+  overflow:hidden;
+}
+
+.video-wrap{
+  width:100%;
+  aspect-ratio:16/9;
+  background:#000;
+}
+
+.video-wrap video,
+.video-wrap iframe{
+  width:100%;
+  height:100%;
+  border:0;
+  display:block;
+}
+
+.player-controls{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:12px;
+  flex-wrap:wrap;
+}
+
+.notice{
+  background:#181820;
+  border-left:3px solid #ff3b81;
+  padding:12px;
+  margin-top:15px;
+  color:#bbb;
+  line-height:1.5;
+}
+
+.coming{
+  color:#ffb3cd;
+  font-weight:bold;
+}
+
+@media(max-width:600px){
+
+  main{padding:12px}
+
+  header{gap:8px}
+
+  .logo{font-size:18px}
+
+  .grid{
+    grid-template-columns:repeat(2,1fr);
+    gap:10px;
+  }
+
+  .detail-top{
+    flex-direction:column;
+  }
+
+  .poster{
+    width:180px;
+    height:260px;
+  }
+
+  .info h1{
+    font-size:23px;
+  }
+}
+</style>
+</head>
+
+<body>
+
+<header>
+
+<div class="logo">Anime Super</div>
+
+<div class="search">
+<input id="search" type="text" placeholder="Search anime...">
+</div>
+
+</header>
+
+<main>
+
+<!-- HOME -->
+
+<section id="homePage" class="page active">
+
+<div class="home-title">
+Anime & Movies
+</div>
+
+<div id="animeGrid" class="grid"></div>
+
+</section>
+
+
+<!-- DETAILS -->
+
+<section id="detailsPage" class="page">
+
+<div class="details">
+
+<button class="back" onclick="showHome()">
+← Back
+</button>
+
+<div class="detail-top">
+
+<img id="detailPoster" class="poster" alt="Poster">
+
+<div class="info">
+
+<h1 id="detailTitle"></h1>
+
+<p id="detailDescription"></p>
+
+<button
+id="watchButton"
+class="watch-btn"
+onclick="watchMovie()">
+Watch
+</button>
+
+</div>
+</div>
+
+<div id="seasonContainer" class="season-bar"></div>
+
+<div id="episodeContainer" class="episodes"></div>
+
+</div>
+
+</section>
+
+
+<!-- PLAYER -->
+
+<section id="playerPage" class="page">
+
+<div class="player-page">
+
+<button
+class="back"
+onclick="backFromPlayer()">
+← Back
+</button>
+
+<h2 id="playerTitle" class="player-title"></h2>
+
+<div class="player-box">
+
+<div class="video-wrap">
+
+<video
+id="video"
+controls
+playsinline
+preload="metadata"
+controlsList="nodownload">
+</video>
+
+<iframe
+id="embedPlayer"
+allow="autoplay; fullscreen; picture-in-picture"
+allowfullscreen
+referrerpolicy="origin"
+style="display:none">
+</iframe>
+
+</div>
+</div>
+
+<div class="player-controls">
+
+<label id="audioLabel" for="audioSelect">
+Audio:
+</label>
+
+<select
+id="audioSelect"
+class="player-select">
+</select>
+
+<label for="qualitySelect">
+Quality:
+</label>
+
+<select
+id="qualitySelect"
+class="player-select">
+</select>
+
+</div>
+
+<div id="playerNotice" class="notice"></div>
+
+</div>
+
+</section>
+
+</main>
+
+
+<script>
+
+/* ================================
+   ANIME / MOVIES
+================================ */
+
+const anime={
+
+cuckoos:{
+  title:"A Couple of Cuckoos",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358206/IMG_20260908_190819.jpg",
+  description:"A Couple of Cuckoos.",
+  available:true
+},
+
+onepiece:{
+  title:"One Piece",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358205/119aad3c7d98b9bf795ee7b2eb753791.jpg",
+  description:"One Piece.",
+  available:false
+},
+
+demon:{
+  title:"Demon Slayer",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358205/81c79cb8cfcb320fb7890403fc9bc81d.jpg",
+  description:"Demon Slayer.",
+  available:false
+},
+
+naruto:{
+  title:"Naruto",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358204/efe8b8f7c8c55a90350cff6b2cd3df14.jpg",
+  description:"Naruto.",
+  available:false
+},
+
+slime:{
+  title:"That Time I Got Reincarnated as a Slime",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358204/b60db8a2a69db4a12235f4ff4aa5fcf6.jpg",
+  description:"That Time I Got Reincarnated as a Slime.",
+  available:true
+},
+
+mha:{
+  title:"My Hero Academia",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358204/94eaf36ebaef4a16cc0931b1dcdf2f27_1.jpg",
+  description:"My Hero Academia.",
+  available:false
+},
+
+yourname:{
+  title:"Your Name",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790340027/07ce7e0c11a05a2a9911bceb482475c4.jpg",
+  description:"Your Name — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+fireworks:{
+  title:"Fireworks",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790358159/0116a9919c4e54bdc12b8193b790eb0e.jpg",
+  description:"Fireworks — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+pancreas:{
+  title:"I Want to Eat Your Pancreas",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359243/c7428e3e9fa6f4e9bd3a4566faca239c.jpg",
+  description:"I Want to Eat Your Pancreas — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+fivecm:{
+  title:"5 Centimeters per Second",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359243/f8b277e72641845c69e4c4282cd76cdb.jpg",
+  description:"5 Centimeters per Second — Anime Movie.",
+  available:false,
+  movie:true
+},
+
+silentvoice:{
+  title:"A Silent Voice",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359243/ab331f3361a8e2c667f7cadd0eb56716.jpg",
+  description:"A Silent Voice — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+tunnelsummer:{
+  title:"The Tunnel to Summer, the Exit of Goodbyes",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359243/7ef8e70d38b88bdcb53a2287e38b3da2.jpg",
+  description:"The Tunnel to Summer, the Exit of Goodbyes — Anime Movie.",
+  available:false,
+  movie:true
+},
+
+weathering:{
+  title:"Weathering with You",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359243/83a75345e7c5552a08df687b99a8c22b.jpg",
+  description:"Weathering with You — Anime Movie.",
+  available:false,
+  movie:true
+},
+
+gardenwords:{
+  title:"The Garden of Words",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359244/f4ed65e7d264247a984efc1464123ffd.jpg",
+  description:"The Garden of Words — Anime Movie.",
+  available:false,
+  movie:true
+},
+
+relife:{
+  title:"ReLIFE",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359244/809d63bb4a36ed90aba060b5c43bd916.jpg",
+  description:"ReLIFE.",
+  available:false
+},
+
+wedding365:{
+  title:"365 Days to the Wedding",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359244/6f29831015e8bcaf2517482af731cc6c.jpg",
+  description:"365 Days to the Wedding.",
+  available:false
+},
+
+suzume:{
+  title:"Suzume",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359247/016d288fbc67f934801576a79d81fc6c.jpg",
+  description:"Suzume — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+/* A WHISKER AWAY */
+
+whiskeraway:{
+  title:"A Whisker Away",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790434772/dde659b7db43586cf334f0664cc13df5.jpg",
+  description:"A Whisker Away — Anime Movie.",
+  available:true,
+  movie:true
+},
+
+hyouka:{
+  title:"Hyouka",
+  poster:"https://res.cloudinary.com/xtvdrsrh/image/upload/v1790359244/31527f47aba901ff1f9f40bfe71c47cf.jpg",
+  description:"Hyouka.",
+  available:false
+}
+
+};
+
+
+/* ================================
+   EPISODE VIDEOS
+================================ */
+
+const videos={
+
+cuckoos:{
+
+1:{
+"360p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788852717/RAI_A_Couple_of_Cuckoos_S01E01_-_Hindi_360P_SD.ts",
+"720p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788867485/RAI_A_Couple_of_Cuckoos_S01E01_-_Hindi_720P_HD.ts"
+},
+
+2:{
+"360p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788869142/RAI_A_Couple_of_Cuckoos_S01E02_-_Hindi_360P_SD.ts",
+"720p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788869108/RAI_A_Couple_of_Cuckoos_S01E02_-_Hindi_720P_HD.ts"
+},
+
+3:{
+"360p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788869830/RAI_A_Couple_of_Cuckoos_S01E03_-_Hindi_360P_SD.ts",
+"720p":"https://res.cloudinary.com/tilxfevp/video/upload/f_mp4/v1788869880/RAI_A_Couple_of_Cuckoos_S01E03_-_Hindi_720P_HD.ts"
+}
+
+},
+
+slime:{
+
+1:{"360p":"https://files.catbox.moe/re3jz8.mp4"},
+
+2:{
+"360p":"https://files.catbox.moe/mjwukp.mp4",
+"1080p":"https://files.catbox.moe/7un3wx.mp4"
+},
+
+3:{"360p":"https://files.catbox.moe/q0ixrt.mp4"},
+4:{"360p":"https://files.catbox.moe/p4vl4a.mp4"},
+5:{"360p":"https://files.catbox.moe/ktsc78.mp4"},
+6:{"360p":"https://files.catbox.moe/cb5nno.mp4"},
+7:{"360p":"https://files.catbox.moe/h3qzw2.mp4"},
+8:{"360p":"https://files.catbox.moe/gryq0h.mp4"},
+9:{"360p":"https://files.catbox.moe/ejm7i3.mp4"},
+10:{"360p":"https://files.catbox.moe/6jqkkf.mp4"},
+11:{"360p":"https://files.catbox.moe/uc3nfy.mp4"},
+12:{"360p":"https://files.catbox.moe/sahzmc.mp4"},
+13:{"360p":"https://files.catbox.moe/l8zf3u.mp4"},
+14:{"360p":"https://files.catbox.moe/u4kjw2.mp4"},
+15:{"360p":"https://files.catbox.moe/k0xwdo.mp4"},
+16:{"360p":"https://files.catbox.moe/2n2p91.mp4"},
+17:{"360p":"https://files.catbox.moe/bve38r.mp4"},
+18:{"360p":"https://files.catbox.moe/syq7c2.mp4"},
+19:{"360p":"https://files.catbox.moe/6i50ii.mp4"},
+20:{"360p":"https://files.catbox.moe/s6xscc.mp4"},
+21:{"360p":"https://files.catbox.moe/agm5me.mp4"},
+22:{"360p":"https://files.catbox.moe/5qe3z3.mp4"},
+23:{"360p":"https://files.catbox.moe/57mo8p.mp4"},
+24:{"360p":"https://files.catbox.moe/kjtvkk.mp4"},
+
+25:{"360p":"https://files.catbox.moe/e2vett.mp4"},
+26:{"360p":"https://files.catbox.moe/i7r1gv.mp4"},
+27:{"360p":"https://files.catbox.moe/zwl4a4.mp4"},
+28:{"360p":"https://files.catbox.moe/fj71nv.mp4"},
+29:{"360p":"https://files.catbox.moe/jcgzii.mp4"},
+30:{"360p":"https://files.catbox.moe/buhfg4.mp4"},
+31:{"360p":"https://files.catbox.moe/08fiqn.mp4"},
+32:{"360p":"https://files.catbox.moe/0d5pvd.mp4"},
+33:{"360p":"https://files.catbox.moe/c97vg3.mp4"},
+34:{"360p":"https://files.catbox.moe/zu3vc2.mp4"},
+35:{"360p":"https://files.catbox.moe/jspbh9.mp4"},
+36:{"360p":"https://files.catbox.moe/sj59gq.mp4"}
+
+}
+
+};
+
+
+/* ================================
+   MOVIES
+================================ */
+
+const movies={
+
+/* YOUR NAME */
+
+yourname:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-935ty93sf6g4.html",
+"1080p":"https://vidmoly.org/embed-cvnayodf1noz.html"
+},
+
+"English Dub":{
+"720p":"https://vidmoly.org/embed-xicozqfojpl5.html",
+"1080p":"https://vidmoly.org/embed-yusya01lnyhv.html"
+},
+
+"Hindi Dub":{
+"720p":"https://vidmoly.org/embed-5196pcftqge4.html",
+"1080p":"https://vidmoly.org/embed-alwdimoif8pl.html"
+}
+
+},
+
+
+/* I WANT TO EAT YOUR PANCREAS */
+
+pancreas:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-7zf1og4zhfix.html",
+"1080p":"https://vidmoly.org/embed-8vsn9pt0xrem.html"
+},
+
+"English Dub":{
+"720p":"https://vidmoly.org/embed-lt4vib0gkw20.html",
+"1080p":"https://vidmoly.org/embed-5e9pte2zcuiy.html"
+},
+
+"Hindi Dub":{
+"720p":"https://vidmoly.org/embed-cgbrgo3qnaqq.html",
+"1080p":"https://vidmoly.org/embed-pc5kbxf2vyn8.html"
+}
+
+},
+
+
+/* A SILENT VOICE */
+
+silentvoice:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-brm1tax7k8bt.html",
+"1080p":"https://vidmoly.org/embed-xmwng0hzm7mo.html"
+},
+
+"English Dub":{
+"720p":"https://vidmoly.org/embed-dqxmsng77xl1.html",
+"1080p":"https://vidmoly.org/embed-5zc6r5si7dhh.html"
+},
+
+"Hindi Dub":{
+"720p":"https://vidmoly.org/embed-y34iunflm66d.html",
+"1080p":"https://vidmoly.org/embed-4w3aomivblw2.html"
+}
+
+},
+
+
+/* SUZUME */
+
+suzume:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-jqq0ps7bj719.html",
+"1080p":"https://vidmoly.org/embed-nymnp6bl20rg.html"
+},
+
+"English Dub":{
+"720p":"https://vidmoly.org/embed-68l101y8qqq4.html",
+"1080p":"https://vidmoly.org/embed-0wt28ikv939q.html"
+},
+
+"Hindi Dub":{
+"720p":"https://vidmoly.org/embed-ri3pyc8ztghk.html",
+"1080p":"https://vidmoly.org/embed-zp4a7jc86tg9.html"
+}
+
+},
+
+
+/* FIREWORKS */
+
+fireworks:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-ye0ev4afqolr.html",
+"1080p":"https://vidmoly.org/embed-2mkgkf908eh4.html"
+}
+
+},
+
+
+/* A WHISKER AWAY */
+
+whiskeraway:{
+
+"Japanese Dub":{
+"720p":"https://vidmoly.org/embed-qgooh1c46kh4.html",
+"1080p":"https://vidmoly.org/embed-2efo7hcx026a.html"
+},
+
+"English Dub":{
+"720p":"https://vidmoly.org/embed-x813dmye73tv.html",
+"1080p":"https://vidmoly.org/embed-16owzbcvm2ah.html"
+}
+
+}
+
+};
+
+
+/* ================================
+   SEASONS
+================================ */
+
+const seasons={
+
+slime:{
+
+1:{
+name:"Season 1",
+episodes:[
+1,2,3,4,5,6,7,8,9,10,11,12,
+13,14,15,16,17,18,19,20,21,22,23,24
+]
+},
+
+2:{
+name:"Season 2",
+episodes:[
+25,26,27,28,29,30,31,32,33,34,35,36
+]
+}
+
+}
+
+};
+
+
+/* ================================
+   STATE
+================================ */
+
+let currentAnime=null;
+let currentEpisode=null;
+let currentSeason=1;
+let currentQuality=null;
+let currentAudio=null;
+
+const video=
+document.getElementById("video");
+
+const embedPlayer=
+document.getElementById("embedPlayer");
+
+const qualitySelect=
+document.getElementById("qualitySelect");
+
+const audioSelect=
+document.getElementById("audioSelect");
+
+const audioLabel=
+document.getElementById("audioLabel");
+
+
+/* ================================
+   PAGE CONTROL
+================================ */
+
+function showPage(id){
+
+document.querySelectorAll(".page")
+.forEach(page=>{
+page.classList.remove("active");
+});
+
+document.getElementById(id)
+.classList.add("active");
+
+window.scrollTo(0,0);
+
+}
+
+
+function showHome(){
+
+stopPlayers();
+
+showPage("homePage");
+
+}
+
+
+/* ================================
+   HOME
+================================ */
+
+function renderAnime(
+list=Object.keys(anime)
+){
+
+const grid=
+document.getElementById("animeGrid");
+
+grid.innerHTML="";
+
+list.forEach(id=>{
+
+const data=anime[id];
+
+const card=
+document.createElement("div");
+
+card.className="card";
+
+card.innerHTML=`
+
+<img
+src="${data.poster}"
+alt="${data.title}"
+loading="lazy">
+
+<div class="card-title">
+${data.title}
+</div>
+
+`;
+
+card.onclick=()=>openDetails(id);
+
+grid.appendChild(card);
+
+});
+
+}
+
+
+/* ================================
+   DETAILS
+================================ */
+
+function openDetails(id){
+
+stopPlayers();
+
+currentAnime=id;
+
+if(id==="slime"){
+currentSeason=1;
+}
+
+const data=anime[id];
+
+document.getElementById("detailPoster")
+.src=data.poster;
+
+document.getElementById("detailTitle")
+.textContent=data.title;
+
+document.getElementById("detailDescription")
+.textContent=data.description;
+
+document.getElementById("seasonContainer")
+.innerHTML="";
+
+document.getElementById("episodeContainer")
+.innerHTML="";
+
+const watchButton=
+document.getElementById("watchButton");
+
+
+/* MOVIE AVAILABLE */
+
+if(data.movie && movies[id]){
+
+watchButton.style.display="inline-block";
+
+const audioList=
+Object.keys(movies[id]);
+
+const qualitySet=
+new Set();
+
+audioList.forEach(audio=>{
+
+Object.keys(movies[id][audio])
+.forEach(q=>qualitySet.add(q));
+
+});
+
+document.getElementById("episodeContainer")
+.innerHTML=`
+
+<div class="notice">
+
+Audio:
+${audioList.join(" • ")}
+
+<br><br>
+
+Quality:
+${Array.from(qualitySet).join(" • ")}
+
+</div>
+
+`;
+
+}
+
+
+/* MOVIE COMING SOON */
+
+else if(data.movie){
+
+watchButton.style.display="none";
+
+document.getElementById("episodeContainer")
+.innerHTML=`
+
+<div class="notice coming">
+Coming Soon
+</div>
+
+`;
+
+}
+
+
+/* ANIME WITH SEASONS */
+
+else if(seasons[id]){
+
+watchButton.style.display="none";
+
+createSeasonSelector();
+
+renderSeasonEpisodes();
+
+}
+
+
+/* NORMAL EPISODES */
+
+else if(videos[id]){
+
+watchButton.style.display="none";
+
+renderNormalEpisodes();
+
+}
+
+
+/* NO EPISODES */
+
+else{
+
+watchButton.style.display="none";
+
+document.getElementById("episodeContainer")
+.innerHTML=`
+
+<div class="notice coming">
+Episodes Coming Soon
+</div>
+
+`;
+
+}
+
+showPage("detailsPage");
+
+}
+
+
+/* ================================
+   SEASON SELECTOR
+================================ */
+
+function createSeasonSelector(){
+
+const container=
+document.getElementById("seasonContainer");
+
+const select=
+document.createElement("select");
+
+select.className="season-select";
+
+Object.keys(seasons[currentAnime])
+.forEach(season=>{
+
+const option=
+document.createElement("option");
+
+option.value=season;
+
+option.textContent=
+seasons[currentAnime][season].name;
+
+if(Number(season)===currentSeason){
+option.selected=true;
+}
+
+select.appendChild(option);
+
+});
+
+select.onchange=()=>{
+
+currentSeason=
+Number(select.value);
+
+renderSeasonEpisodes();
+
+};
+
+container.innerHTML=
+"<label>Season: </label>";
+
+container.appendChild(select);
+
+}
+
+
+/* ================================
+   SEASON EPISODES
+================================ */
+
+function renderSeasonEpisodes(){
+
+const container=
+document.getElementById("episodeContainer");
+
+const eps=
+seasons[currentAnime]
+[currentSeason]
+.episodes;
+
+container.innerHTML=
+"<h2>Episodes</h2>";
+
+const list=
+document.createElement("div");
+
+list.className="episode-list";
+
+eps.forEach(ep=>{
+
+const button=
+document.createElement("div");
+
+button.className="episode";
+
+button.textContent=
+"EP "+ep;
+
+button.onclick=()=>{
+
+currentEpisode=ep;
+
+openEpisodePlayer();
+
+};
+
+list.appendChild(button);
+
+});
+
+container.appendChild(list);
+
+}
+
+
+/* ================================
+   NORMAL EPISODES
+================================ */
+
+function renderNormalEpisodes(){
+
+const container=
+document.getElementById("episodeContainer");
+
+const eps=
+Object.keys(videos[currentAnime]);
+
+container.innerHTML=
+"<h2>Episodes</h2>";
+
+const list=
+document.createElement("div");
+
+list.className="episode-list";
+
+eps.forEach(ep=>{
+
+const button=
+document.createElement("div");
+
+button.className="episode";
+
+button.textContent=
+"EP "+ep;
+
+button.onclick=()=>{
+
+currentEpisode=
+Number(ep);
+
+openEpisodePlayer();
+
+};
+
+list.appendChild(button);
+
+});
+
+container.appendChild(list);
+
+}
+
+
+/* ================================
+   EPISODE PLAYER
+================================ */
+
+function openEpisodePlayer(){
+
+showPage("playerPage");
+
+document.getElementById("playerTitle")
+.textContent=
+anime[currentAnime].title+
+" - Episode "+
+currentEpisode;
+
+document.getElementById("playerNotice")
+.textContent="";
+
+audioSelect.style.display="none";
+audioLabel.style.display="none";
+
+qualitySelect.style.display="inline-block";
+
+setupDirectQualities();
+
+loadDirectVideo();
+
+}
+
+
+/* ================================
+   DIRECT QUALITY
+================================ */
+
+function setupDirectQualities(){
+
+qualitySelect.innerHTML="";
+
+const data=
+videos[currentAnime]
+?.[currentEpisode];
+
+if(!data)return;
+
+const qualities=
+Object.keys(data);
+
+currentQuality=
+qualities[0];
+
+qualities.forEach(q=>{
+
+const option=
+document.createElement("option");
+
+option.value=q;
+option.textContent=q;
+
+qualitySelect.appendChild(option);
+
+});
+
+qualitySelect.value=
+currentQuality;
+
+qualitySelect.onchange=()=>{
+
+currentQuality=
+qualitySelect.value;
+
+loadDirectVideo();
+
+};
+
+}
+
+
+/* ================================
+   DIRECT VIDEO
+================================ */
+
+function loadDirectVideo(){
+
+const url=
+videos[currentAnime]
+?.[currentEpisode]
+?.[currentQuality];
+
+if(!url)return;
+
+embedPlayer.src="";
+embedPlayer.style.display="none";
+
+video.style.display="block";
+
+video.pause();
+
+video.removeAttribute("src");
+
+video.load();
+
+setTimeout(()=>{
+
+video.src=url;
+video.load();
+
+},80);
+
+}
+
+
+/* ================================
+   WATCH MOVIE
+================================ */
+
+function watchMovie(){
+
+if(!movies[currentAnime])return;
+
+const audioList=
+Object.keys(movies[currentAnime]);
+
+if(audioList.includes("English Dub")){
+
+currentAudio="English Dub";
+
+}else{
+
+currentAudio=audioList[0];
+
+}
+
+const qualities=
+Object.keys(
+movies[currentAnime][currentAudio]
+);
+
+if(qualities.includes("720p")){
+
+currentQuality="720p";
+
+}else{
+
+currentQuality=qualities[0];
+
+}
+
+openMoviePlayer();
+
+}
+
+
+/* ================================
+   MOVIE PLAYER
+================================ */
+
+function openMoviePlayer(){
+
+showPage("playerPage");
+
+document.getElementById("playerTitle")
+.textContent=
+anime[currentAnime].title;
+
+video.pause();
+
+video.removeAttribute("src");
+
+video.load();
+
+video.style.display="none";
+
+embedPlayer.style.display="block";
+
+audioSelect.style.display="inline-block";
+audioLabel.style.display="inline-block";
+
+qualitySelect.style.display="inline-block";
+
+createMovieControls();
+
+loadMovieEmbed();
+
+updateMovieNotice();
+
+}
+
+
+/* ================================
+   MOVIE CONTROLS
+================================ */
+
+function createMovieControls(){
+
+const movieData=
+movies[currentAnime];
+
+audioSelect.innerHTML="";
+
+Object.keys(movieData)
+.forEach(audio=>{
+
+const option=
+document.createElement("option");
+
+option.value=audio;
+option.textContent=audio;
+
+audioSelect.appendChild(option);
+
+});
+
+audioSelect.value=
+currentAudio;
+
+audioSelect.onchange=()=>{
+
+currentAudio=
+audioSelect.value;
+
+const availableQualities=
+Object.keys(
+movieData[currentAudio]
+);
+
+if(
+!availableQualities.includes(
+currentQuality
+)
+){
+
+currentQuality=
+availableQualities[0];
+
+}
+
+setupMovieQualities();
+
+loadMovieEmbed();
+
+updateMovieNotice();
+
+};
+
+setupMovieQualities();
+
+}
+
+
+/* ================================
+   MOVIE QUALITY
+================================ */
+
+function setupMovieQualities(){
+
+const data=
+movies[currentAnime]
+[currentAudio];
+
+qualitySelect.innerHTML="";
+
+Object.keys(data)
+.forEach(q=>{
+
+const option=
+document.createElement("option");
+
+option.value=q;
+option.textContent=q;
+
+qualitySelect.appendChild(option);
+
+});
+
+if(!data[currentQuality]){
+
+currentQuality=
+Object.keys(data)[0];
+
+}
+
+qualitySelect.value=
+currentQuality;
+
+qualitySelect.onchange=()=>{
+
+currentQuality=
+qualitySelect.value;
+
+loadMovieEmbed();
+
+updateMovieNotice();
+
+};
+
+}
+
+
+/* ================================
+   LOAD MOVIE
+================================ */
+
+function loadMovieEmbed(){
+
+const url=
+movies[currentAnime]
+?.[currentAudio]
+?.[currentQuality];
+
+if(!url)return;
+
+embedPlayer.src="";
+
+setTimeout(()=>{
+
+embedPlayer.src=url;
+
+},100);
+
+}
+
+
+/* ================================
+   PLAYER INFO
+================================ */
+
+function updateMovieNotice(){
+
+document.getElementById("playerNotice")
+.textContent=
+currentAudio+
+" • "+
+currentQuality;
+
+}
+
+
+/* ================================
+   STOP
+================================ */
+
+function stopPlayers(){
+
+video.pause();
+
+video.removeAttribute("src");
+
+video.load();
+
+embedPlayer.src="";
+
+}
+
+
+/* ================================
+   BACK
+================================ */
+
+function backFromPlayer(){
+
+openDetails(currentAnime);
+
+}
+
+
+/* ================================
+   SEARCH
+================================ */
+
+document.getElementById("search")
+.addEventListener(
+"input",
+function(){
+
+const query=
+this.value
+.toLowerCase()
+.trim();
+
+const result=
+Object.keys(anime)
+.filter(id=>
+
+anime[id]
+.title
+.toLowerCase()
+.includes(query)
+
+);
+
+renderAnime(result);
+
+});
+
+
+/* START */
+
+renderAnime();
+
+</script>
+
+</body>
+</html>
