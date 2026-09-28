@@ -1,29 +1,22 @@
 export default {
   async fetch(request, env) {
     const url = new URL(request.url);
+    const cookie = request.headers.get("Cookie") || "";
+    const loggedIn = await isValidSession(cookie, env.ADMIN_PASSWORD);
 
-    // Admin login page
+    // ADMIN PAGE
     if (url.pathname === "/admin") {
-      const cookie = request.headers.get("Cookie") || "";
-
-      if (await isValidSession(cookie, env.ADMIN_PASSWORD)) {
-        return new Response(adminPage(), {
-          headers: { "Content-Type": "text/html; charset=UTF-8" }
-        });
-      }
-
-      return new Response(loginPage(), {
+      return new Response(loggedIn ? adminPage() : loginPage(), {
         headers: { "Content-Type": "text/html; charset=UTF-8" }
       });
     }
 
-    // Login API
+    // LOGIN
     if (url.pathname === "/api/admin/login" && request.method === "POST") {
       try {
         const body = await request.json();
-        const password = body.password || "";
 
-        if (!env.ADMIN_PASSWORD || password !== env.ADMIN_PASSWORD) {
+        if (!env.ADMIN_PASSWORD || body.password !== env.ADMIN_PASSWORD) {
           return Response.json(
             { success: false, error: "Invalid password" },
             { status: 401 }
@@ -47,7 +40,7 @@ export default {
       }
     }
 
-    // Logout
+    // LOGOUT
     if (url.pathname === "/api/admin/logout") {
       return new Response(JSON.stringify({ success: true }), {
         headers: {
@@ -58,24 +51,124 @@ export default {
       });
     }
 
-    // Normal Anime Super website
+    // EVERYTHING BELOW REQUIRES LOGIN
+    if (url.pathname.startsWith("/api/admin/") && !loggedIn) {
+      return Response.json(
+        { success: false, error: "Unauthorized" },
+        { status: 401 }
+      );
+    }
+
+    // GET ANIME
+    if (
+      url.pathname === "/api/admin/anime" &&
+      request.method === "GET"
+    ) {
+      try {
+        const result = await env.DB.prepare(
+          "SELECT id, title, poster, description, created_at FROM anime ORDER BY id DESC"
+        ).all();
+
+        return Response.json({
+          success: true,
+          anime: result.results
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ADD ANIME
+    if (
+      url.pathname === "/api/admin/anime" &&
+      request.method === "POST"
+    ) {
+      try {
+        const body = await request.json();
+
+        const title = String(body.title || "").trim();
+        const poster = String(body.poster || "").trim();
+        const description = String(body.description || "").trim();
+
+        if (!title) {
+          return Response.json(
+            { success: false, error: "Title required" },
+            { status: 400 }
+          );
+        }
+
+        const result = await env.DB.prepare(
+          "INSERT INTO anime (title, poster, description) VALUES (?, ?, ?)"
+        )
+          .bind(title, poster, description)
+          .run();
+
+        return Response.json({
+          success: true,
+          id: result.meta.last_row_id
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // DELETE ANIME
+    if (
+      url.pathname.startsWith("/api/admin/anime/") &&
+      request.method === "DELETE"
+    ) {
+      try {
+        const id = Number(url.pathname.split("/").pop());
+
+        if (!Number.isInteger(id) || id <= 0) {
+          return Response.json(
+            { success: false, error: "Invalid anime ID" },
+            { status: 400 }
+          );
+        }
+
+        await env.DB.prepare(
+          "DELETE FROM episodes WHERE anime_id = ?"
+        ).bind(id).run();
+
+        await env.DB.prepare(
+          "DELETE FROM anime WHERE id = ?"
+        ).bind(id).run();
+
+        return Response.json({ success: true });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // NORMAL ANIME SUPER WEBSITE
     return env.ASSETS.fetch(request);
   }
 };
 
 async function createSession(secret) {
-  const data = "AnimeSuperAdmin";
-  return await hmac(secret, data);
+  return hmac(secret, "AnimeSuperAdmin");
 }
 
 async function isValidSession(cookieHeader, secret) {
   if (!secret) return false;
 
-  const match = cookieHeader.match(/(?:^|;\s*)admin_session=([^;]+)/);
+  const match = cookieHeader.match(
+    /(?:^|;\s*)admin_session=([^;]+)/
+  );
+
   if (!match) return false;
 
   const expected = await createSession(secret);
-
   return match[1] === expected;
 }
 
@@ -106,7 +199,10 @@ function loginPage() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Anime Super Admin</title>
+
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
   min-height:100vh;
@@ -114,59 +210,97 @@ body{
   align-items:center;
   justify-content:center;
   background:#0b0b0f;
-  color:white;
+  color:#fff;
   font-family:Arial,sans-serif;
 }
+
 .box{
-  width:min(90%,360px);
-  background:#15151d;
+  width:min(90%,380px);
   padding:25px;
+  background:#15151d;
   border-radius:16px;
-  box-sizing:border-box;
 }
-h2{text-align:center;margin-top:0}
+
+h2{
+  text-align:center;
+  margin-top:0;
+}
+
 input,button{
   width:100%;
-  padding:13px;
+  padding:14px;
   margin-top:12px;
   border:0;
-  border-radius:8px;
-  box-sizing:border-box;
+  border-radius:9px;
+  font-size:15px;
 }
-input{background:#242430;color:white}
-button{background:#6c5ce7;color:white;font-weight:bold}
-#error{color:#ff6b6b;text-align:center;margin-top:12px}
+
+input{
+  background:#242430;
+  color:#fff;
+}
+
+button{
+  background:#6c5ce7;
+  color:#fff;
+  font-weight:bold;
+  cursor:pointer;
+}
+
+#error{
+  color:#ff6b6b;
+  text-align:center;
+  margin-top:12px;
+}
 </style>
 </head>
+
 <body>
+
 <div class="box">
-<h2>Anime Super Admin</h2>
-<form id="login">
-<input id="password" type="password" placeholder="Admin password" required>
-<button type="submit">Login</button>
-<div id="error"></div>
-</form>
+  <h2>Anime Super Admin</h2>
+
+  <form id="login">
+    <input
+      id="password"
+      type="password"
+      placeholder="Admin password"
+      required
+    >
+
+    <button type="submit">Login</button>
+
+    <div id="error"></div>
+  </form>
 </div>
 
 <script>
-document.getElementById("login").addEventListener("submit", async e=>{
-  e.preventDefault();
+document.getElementById("login").addEventListener(
+  "submit",
+  async function(e){
+    e.preventDefault();
 
-  const password=document.getElementById("password").value;
+    const password =
+      document.getElementById("password").value;
 
-  const res=await fetch("/api/admin/login",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({password})
-  });
+    const res = await fetch("/api/admin/login", {
+      method:"POST",
+      headers:{
+        "Content-Type":"application/json"
+      },
+      body:JSON.stringify({password})
+    });
 
-  if(res.ok){
-    location.href="/admin";
-  }else{
-    document.getElementById("error").textContent="Wrong password";
+    if(res.ok){
+      location.href="/admin";
+    }else{
+      document.getElementById("error").textContent =
+        "Wrong password";
+    }
   }
-});
+);
 </script>
+
 </body>
 </html>`;
 }
@@ -178,34 +312,318 @@ function adminPage() {
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Anime Super Admin</title>
+
 <style>
+*{box-sizing:border-box}
+
 body{
   margin:0;
-  padding:25px;
   background:#0b0b0f;
-  color:white;
+  color:#fff;
   font-family:Arial,sans-serif;
 }
-button{
-  padding:12px 18px;
+
+header{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:18px;
+  background:#15151d;
+}
+
+header h2{
+  margin:0;
+}
+
+.container{
+  max-width:800px;
+  margin:auto;
+  padding:18px;
+}
+
+.card{
+  background:#15151d;
+  padding:18px;
+  border-radius:14px;
+  margin-bottom:18px;
+}
+
+input,textarea,button{
+  width:100%;
+  padding:13px;
   border:0;
   border-radius:8px;
+  font-size:15px;
+}
+
+input,textarea{
+  background:#242430;
+  color:#fff;
+  margin-top:10px;
+}
+
+textarea{
+  min-height:90px;
+  resize:vertical;
+}
+
+button{
   background:#6c5ce7;
-  color:white;
+  color:#fff;
+  font-weight:bold;
+  margin-top:12px;
+  cursor:pointer;
+}
+
+.logout{
+  width:auto;
+  margin:0;
+  padding:10px 14px;
+  background:#e74c3c;
+}
+
+.status{
+  margin-top:12px;
+  font-size:14px;
+}
+
+.anime{
+  display:flex;
+  gap:12px;
+  align-items:center;
+  background:#20202a;
+  padding:12px;
+  border-radius:10px;
+  margin-top:10px;
+}
+
+.poster{
+  width:55px;
+  height:75px;
+  border-radius:6px;
+  object-fit:cover;
+  background:#333;
+}
+
+.info{
+  flex:1;
+  min-width:0;
+}
+
+.title{
+  font-weight:bold;
+  overflow-wrap:anywhere;
+}
+
+.desc{
+  color:#aaa;
+  font-size:13px;
+  margin-top:5px;
+  overflow-wrap:anywhere;
+}
+
+.delete{
+  width:auto;
+  background:#e74c3c;
+  padding:9px 12px;
+  margin:0;
 }
 </style>
 </head>
+
 <body>
-<h1>Anime Super Admin</h1>
-<p>Login successful.</p>
-<button onclick="logout()">Logout</button>
+
+<header>
+  <h2>Anime Super Admin</h2>
+  <button class="logout" onclick="logout()">Logout</button>
+</header>
+
+<div class="container">
+
+  <div class="card">
+    <h3>Add Anime</h3>
+
+    <form id="animeForm">
+      <input
+        id="title"
+        placeholder="Anime title"
+        required
+      >
+
+      <input
+        id="poster"
+        placeholder="Poster URL"
+      >
+
+      <textarea
+        id="description"
+        placeholder="Description"
+      ></textarea>
+
+      <button type="submit">Add Anime</button>
+    </form>
+
+    <div id="status" class="status"></div>
+  </div>
+
+  <div class="card">
+    <h3>Anime List</h3>
+    <div id="animeList">Loading...</div>
+  </div>
+
+</div>
 
 <script>
+const statusBox = document.getElementById("status");
+const animeList = document.getElementById("animeList");
+
+async function loadAnime(){
+  animeList.textContent = "Loading...";
+
+  try{
+    const res = await fetch("/api/admin/anime");
+
+    if(res.status === 401){
+      location.href="/admin";
+      return;
+    }
+
+    const data = await res.json();
+
+    if(!data.success){
+      animeList.textContent =
+        data.error || "Could not load anime";
+      return;
+    }
+
+    animeList.innerHTML="";
+
+    if(!data.anime.length){
+      animeList.textContent="No anime added yet.";
+      return;
+    }
+
+    data.anime.forEach(function(item){
+      const row=document.createElement("div");
+      row.className="anime";
+
+      const img=document.createElement("img");
+      img.className="poster";
+
+      if(item.poster){
+        img.src=item.poster;
+        img.alt=item.title;
+      }
+
+      const info=document.createElement("div");
+      info.className="info";
+
+      const title=document.createElement("div");
+      title.className="title";
+      title.textContent=item.title;
+
+      const desc=document.createElement("div");
+      desc.className="desc";
+      desc.textContent=item.description || "";
+
+      info.appendChild(title);
+      info.appendChild(desc);
+
+      const del=document.createElement("button");
+      del.className="delete";
+      del.textContent="Delete";
+
+      del.addEventListener("click", function(){
+        deleteAnime(item.id, item.title);
+      });
+
+      row.appendChild(img);
+      row.appendChild(info);
+      row.appendChild(del);
+
+      animeList.appendChild(row);
+    });
+  }catch(error){
+    animeList.textContent="Network error";
+  }
+}
+
+document.getElementById("animeForm").addEventListener(
+  "submit",
+  async function(e){
+    e.preventDefault();
+
+    statusBox.textContent="Saving...";
+
+    const title =
+      document.getElementById("title").value.trim();
+
+    const poster =
+      document.getElementById("poster").value.trim();
+
+    const description =
+      document.getElementById("description").value.trim();
+
+    try{
+      const res=await fetch("/api/admin/anime",{
+        method:"POST",
+        headers:{
+          "Content-Type":"application/json"
+        },
+        body:JSON.stringify({
+          title,
+          poster,
+          description
+        })
+      });
+
+      const data=await res.json();
+
+      if(data.success){
+        statusBox.textContent="Anime added successfully.";
+        document.getElementById("animeForm").reset();
+        await loadAnime();
+      }else{
+        statusBox.textContent =
+          data.error || "Could not add anime";
+      }
+    }catch(error){
+      statusBox.textContent="Network error";
+    }
+  }
+);
+
+async function deleteAnime(id,title){
+  if(!confirm("Delete " + title + "?")){
+    return;
+  }
+
+  try{
+    const res=await fetch(
+      "/api/admin/anime/" + id,
+      {method:"DELETE"}
+    );
+
+    const data=await res.json();
+
+    if(data.success){
+      await loadAnime();
+    }else{
+      alert(data.error || "Delete failed");
+    }
+  }catch(error){
+    alert("Network error");
+  }
+}
+
 async function logout(){
   await fetch("/api/admin/logout");
   location.href="/admin";
 }
+
+loadAnime();
 </script>
+
 </body>
 </html>`;
 }
