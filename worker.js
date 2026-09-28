@@ -596,6 +596,31 @@ button{
   <div class="card">
     <h3>Anime List</h3>
     <div id="animeList">Loading...</div>
+<div class="card">
+  <h3>Episode Manager</h3>
+
+  <select id="episodeAnime">
+    <option value="">Select Anime</option>
+  </select>
+
+  <input id="episodeSeason" type="number" min="1" value="1" placeholder="Season">
+
+  <input id="episodeNumber" type="number" min="1" placeholder="Episode Number">
+
+  <input id="episodeTitle" placeholder="Episode Title">
+
+  <input id="url360" placeholder="360p Video URL">
+
+  <input id="url720" placeholder="720p Video URL">
+
+  <input id="url1080" placeholder="1080p Video URL">
+
+  <button id="episodeSave">Add Episode</button>
+
+  <div id="episodeStatus" class="status"></div>
+
+  <div id="episodeList"></div>
+</div>
   </div>
 
 </div>
@@ -749,6 +774,167 @@ async function logout(){
 }
 
 loadAnime();
+async function loadEpisodeAnime(){
+  const select=document.getElementById("episodeAnime");
+
+  const res=await fetch("/api/admin/anime");
+  const data=await res.json();
+
+  if(!data.success)return;
+
+  select.innerHTML='<option value="">Select Anime</option>';
+
+  data.anime.forEach(function(item){
+    const option=document.createElement("option");
+    option.value=item.id;
+    option.textContent=item.title;
+    select.appendChild(option);
+  });
+}
+
+async function loadEpisodes(){
+  const animeId=document.getElementById("episodeAnime").value;
+  const list=document.getElementById("episodeList");
+
+  if(!animeId){
+    list.innerHTML="";
+    return;
+  }
+
+  list.textContent="Loading episodes...";
+
+  const res=await fetch(
+    "/api/admin/anime/"+animeId+"/episodes"
+  );
+
+  const data=await res.json();
+
+  list.innerHTML="";
+
+  if(!data.success){
+    list.textContent=data.error || "Could not load episodes";
+    return;
+  }
+
+  if(!data.episodes.length){
+    list.textContent="No episodes added yet.";
+    return;
+  }
+
+  data.episodes.forEach(function(ep){
+    const row=document.createElement("div");
+    row.className="anime";
+
+    const info=document.createElement("div");
+    info.className="info";
+
+    const title=document.createElement("div");
+    title.className="title";
+    title.textContent=
+      "S"+ep.season+" E"+ep.episode+
+      (ep.title ? " — "+ep.title : "");
+
+    info.appendChild(title);
+
+    const del=document.createElement("button");
+    del.className="delete";
+    del.textContent="Delete";
+
+    del.onclick=async function(){
+      if(!confirm("Delete this episode?"))return;
+
+      const r=await fetch(
+        "/api/admin/episodes/"+ep.id,
+        {method:"DELETE"}
+      );
+
+      const d=await r.json();
+
+      if(d.success){
+        loadEpisodes();
+      }else{
+        alert(d.error || "Delete failed");
+      }
+    };
+
+    row.appendChild(info);
+    row.appendChild(del);
+    list.appendChild(row);
+  });
+}
+
+document.getElementById("episodeAnime")
+.addEventListener("change",loadEpisodes);
+
+document.getElementById("episodeSave")
+.addEventListener("click",async function(){
+
+  const anime_id=
+    document.getElementById("episodeAnime").value;
+
+  const season=
+    document.getElementById("episodeSeason").value;
+
+  const episode=
+    document.getElementById("episodeNumber").value;
+
+  const title=
+    document.getElementById("episodeTitle").value.trim();
+
+  const url_360=
+    document.getElementById("url360").value.trim();
+
+  const url_720=
+    document.getElementById("url720").value.trim();
+
+  const url_1080=
+    document.getElementById("url1080").value.trim();
+
+  if(!anime_id || !episode){
+    document.getElementById("episodeStatus").textContent=
+      "Select anime and enter episode number.";
+    return;
+  }
+
+  document.getElementById("episodeStatus").textContent=
+    "Saving...";
+
+  const res=await fetch("/api/admin/episodes",{
+    method:"POST",
+    headers:{
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      anime_id,
+      season,
+      episode,
+      title,
+      url_360,
+      url_720,
+      url_1080
+    })
+  });
+
+  const data=await res.json();
+
+  if(data.success){
+    document.getElementById("episodeStatus").textContent=
+      "Episode added successfully.";
+
+    document.getElementById("episodeNumber").value="";
+    document.getElementById("episodeTitle").value="";
+    document.getElementById("url360").value="";
+    document.getElementById("url720").value="";
+    document.getElementById("url1080").value="";
+
+    loadEpisodes();
+  }else{
+    document.getElementById("episodeStatus").textContent=
+      data.error || "Could not add episode";
+  }
+});
+
+loadEpisodeAnime();
 </script>
 
 </body>
