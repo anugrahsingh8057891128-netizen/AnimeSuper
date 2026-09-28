@@ -150,6 +150,133 @@ export default {
       }
     }
 
+// EPISODE API
+
+// GET EPISODES
+if (
+  url.pathname.startsWith("/api/admin/anime/") &&
+  url.pathname.endsWith("/episodes") &&
+  request.method === "GET"
+) {
+  try {
+    const animeId = Number(url.pathname.split("/")[4]);
+
+    const result = await env.DB.prepare(
+      "SELECT * FROM episodes WHERE anime_id = ? ORDER BY season, episode"
+    ).bind(animeId).all();
+
+    return Response.json({
+      success: true,
+      episodes: result.results
+    });
+  } catch (error) {
+    return Response.json(
+      { success:false, error:error.message },
+      {status:500}
+    );
+  }
+}
+
+// ADD EPISODE
+if (
+  url.pathname === "/api/admin/episodes" &&
+  request.method === "POST"
+) {
+  try {
+    const data = await request.json();
+
+    if (!data.anime_id || !data.episode) {
+      return Response.json(
+        {success:false,error:"Anime ID and episode required"},
+        {status:400}
+      );
+    }
+
+    const result = await env.DB.prepare(
+      `INSERT INTO episodes
+      (anime_id, season, episode, title, url_360, url_720, url_1080)
+      VALUES (?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      Number(data.anime_id),
+      Number(data.season || 1),
+      Number(data.episode),
+      data.title || "",
+      data.url_360 || "",
+      data.url_720 || "",
+      data.url_1080 || ""
+    ).run();
+
+    return Response.json({
+      success:true,
+      id:result.meta.last_row_id
+    });
+  } catch (error) {
+    return Response.json(
+      {success:false,error:error.message},
+      {status:500}
+    );
+  }
+}
+
+// EDIT EPISODE
+if (
+  /^\/api\/admin\/episodes\/\d+$/.test(url.pathname) &&
+  request.method === "PUT"
+) {
+  try {
+    const id = Number(url.pathname.split("/").pop());
+    const data = await request.json();
+
+    await env.DB.prepare(
+      `UPDATE episodes SET
+      anime_id=?,
+      season=?,
+      episode=?,
+      title=?,
+      url_360=?,
+      url_720=?,
+      url_1080=?
+      WHERE id=?`
+    ).bind(
+      Number(data.anime_id),
+      Number(data.season || 1),
+      Number(data.episode),
+      data.title || "",
+      data.url_360 || "",
+      data.url_720 || "",
+      data.url_1080 || "",
+      id
+    ).run();
+
+    return Response.json({success:true});
+  } catch (error) {
+    return Response.json(
+      {success:false,error:error.message},
+      {status:500}
+    );
+  }
+}
+
+// DELETE EPISODE
+if (
+  /^\/api\/admin\/episodes\/\d+$/.test(url.pathname) &&
+  request.method === "DELETE"
+) {
+  try {
+    const id = Number(url.pathname.split("/").pop());
+
+    await env.DB.prepare(
+      "DELETE FROM episodes WHERE id=?"
+    ).bind(id).run();
+
+    return Response.json({success:true});
+  } catch (error) {
+    return Response.json(
+      {success:false,error:error.message},
+      {status:500}
+    );
+  }
+}
     // NORMAL ANIME SUPER WEBSITE
     return env.ASSETS.fetch(request);
   }
