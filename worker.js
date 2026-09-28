@@ -858,7 +858,29 @@ async function loadEpisodes(){
     };
 
     row.appendChild(info);
+    const edit=document.createElement("button");
+    edit.textContent="Edit";
+    edit.style.marginLeft="8px";
+
+    edit.onclick=function(){
+      document.getElementById("episodeAnime").value=ep.anime_id;
+      document.getElementById("episodeSeason").value=ep.season || 1;
+      document.getElementById("episodeNumber").value=ep.episode || "";
+      document.getElementById("episodeTitle").value=ep.title || "";
+      document.getElementById("url360").value=ep.url_360 || "";
+      document.getElementById("url720").value=ep.url_720 || "";
+      document.getElementById("url1080").value=ep.url_1080 || "";
+
+      const saveButton=document.getElementById("episodeSave");
+      saveButton.textContent="Save Changes";
+      saveButton.dataset.editId=ep.id;
+
+      document.getElementById("episodeStatus").textContent=
+        "Editing episode...";
+    };
+
     row.appendChild(del);
+    row.appendChild(edit);
     list.appendChild(row);
   });
 }
@@ -890,6 +912,12 @@ document.getElementById("episodeSave")
   const url_1080=
     document.getElementById("url1080").value.trim();
 
+  const saveButton=
+    document.getElementById("episodeSave");
+
+  const editId=
+    saveButton.dataset.editId;
+
   if(!anime_id || !episode){
     document.getElementById("episodeStatus").textContent=
       "Select anime and enter episode number.";
@@ -897,10 +925,16 @@ document.getElementById("episodeSave")
   }
 
   document.getElementById("episodeStatus").textContent=
-    "Saving...";
+    editId ? "Updating..." : "Saving...";
 
-  const res=await fetch("/api/admin/episodes",{
-    method:"POST",
+  const url=editId
+    ? "/api/admin/episodes/"+editId
+    : "/api/admin/episodes";
+
+  const method=editId ? "PUT" : "POST";
+
+  const res=await fetch(url,{
+    method:method,
     headers:{
       "Content-Type":"application/json"
     },
@@ -918,8 +952,11 @@ document.getElementById("episodeSave")
   const data=await res.json();
 
   if(data.success){
+
     document.getElementById("episodeStatus").textContent=
-      "Episode added successfully.";
+      editId
+        ? "Episode updated successfully."
+        : "Episode added successfully.";
 
     document.getElementById("episodeNumber").value="";
     document.getElementById("episodeTitle").value="";
@@ -927,10 +964,16 @@ document.getElementById("episodeSave")
     document.getElementById("url720").value="";
     document.getElementById("url1080").value="";
 
+    delete saveButton.dataset.editId;
+    saveButton.textContent="Add Episode";
+
     loadEpisodes();
+
   }else{
+
     document.getElementById("episodeStatus").textContent=
-      data.error || "Could not add episode";
+      data.error || "Could not save episode";
+
   }
 });
 
