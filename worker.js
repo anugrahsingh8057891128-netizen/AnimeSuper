@@ -75,6 +75,67 @@ export default {
       );
     }
 
+    // PUBLIC ANIME API
+    if (url.pathname === "/api/public/anime" && request.method === "GET") {
+      try {
+        const result = await env.DB.prepare(
+          `SELECT id, title, poster, description, movie, available
+           FROM anime
+           ORDER BY id DESC`
+        ).all();
+
+        return Response.json({
+          success: true,
+          anime: result.results
+        });
+      } catch (error) {
+        return Response.json(
+          { success: false, error: error.message },
+          { status: 500 }
+        );
+      }
+    }
+
+    // PUBLIC EPISODES API
+    if (url.pathname.startsWith("/api/public/anime/") && url.pathname.endsWith("/episodes") && request.method === "GET") {
+      try {
+        const parts = url.pathname.split("/");
+        const animeId = Number(parts[4]);
+        if (!animeId) {
+          return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
+        }
+        const result = await env.DB.prepare(
+          `SELECT id, anime_id, season, episode, title, url_360, url_720, url_1080
+           FROM episodes
+           WHERE anime_id = ?
+           ORDER BY season ASC, episode ASC`
+        ).bind(animeId).all();
+        return Response.json({ success:true, episodes:result.results });
+      } catch (error) {
+        return Response.json({ success:false, error:error.message }, {status:500});
+      }
+    }
+
+    // PUBLIC MOVIE LINKS API
+    if (url.pathname.startsWith("/api/public/anime/") && url.pathname.endsWith("/movies") && request.method === "GET") {
+      try {
+        const parts = url.pathname.split("/");
+        const animeId = Number(parts[4]);
+        if (!animeId) {
+          return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
+        }
+        const result = await env.DB.prepare(
+          `SELECT id, anime_id, language, quality, url
+           FROM movie_links
+           WHERE anime_id = ?
+           ORDER BY language ASC, quality ASC`
+        ).bind(animeId).all();
+        return Response.json({ success:true, movies:result.results });
+      } catch (error) {
+        return Response.json({ success:false, error:error.message }, {status:500});
+      }
+    }
+
     // ADMIN API LOGIN CHECK
     if (
       url.pathname.startsWith("/api/admin/") &&
