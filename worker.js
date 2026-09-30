@@ -1433,8 +1433,8 @@ async function loadMovieLinks(){
 
       div.className = "item";
 
-      div.innerHTML = `
-        <b>\${movie.language} Dub</b>
+      div.innerHTML = \`
+         <b>\${movie.language} Dub</b>
         - \${movie.quality}
         <br>
 
@@ -1453,7 +1453,7 @@ async function loadMovieLinks(){
           onclick="deleteMovieLink(\${movie.id})">
           Delete
         </button>
-      `;
+      \`;
 
       movieList.appendChild(div);
 
