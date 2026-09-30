@@ -1434,23 +1434,23 @@ async function loadMovieLinks(){
       div.className = "item";
 
       div.innerHTML = `
-        <b>${movie.language} Dub</b>
-        - ${movie.quality}
+        <b>\${movie.language} Dub</b>
+        - \${movie.quality}
         <br>
 
         <small>
-          ${movie.url}
+          \${movie.url}
         </small>
 
         <br><br>
 
         <button type="button"
-          onclick='editMovieLink(${JSON.stringify(movie)})'>
+          onclick='editMovieLink(\${JSON.stringify(movie)})'>
           Edit
         </button>
 
         <button type="button"
-          onclick="deleteMovieLink(${movie.id})">
+          onclick="deleteMovieLink(\${movie.id})">
           Delete
         </button>
       `;
