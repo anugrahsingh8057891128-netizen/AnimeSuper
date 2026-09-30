@@ -1836,7 +1836,7 @@ animeList.appendChild(row);
 
 }
 
-loadEpisodeAnime();
+loadEpisodeAnime(); loadMovieAnime();
 
 }catch(error){
 
