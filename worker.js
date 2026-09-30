@@ -1014,7 +1014,7 @@ id="url1080"
 placeholder="1080p Video URL"
 >
 
-<button id="episodeSave">
+<button type="button" id="episodeSave">
 Add Episode
 </button>
 
