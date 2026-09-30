@@ -518,7 +518,253 @@ export default {
         );
       }
     }
+    // =====================================================
+    // MOVIE LINK API
+    // =====================================================
 
+    // GET MOVIE LINKS FOR ANIME
+    if (
+      /^\/api\/admin\/anime\/\d+\/movies$/.test(url.pathname) &&
+      request.method === "GET"
+    ) {
+      try {
+        const animeId = Number(url.pathname.split("/")[4]);
+
+        const result = await env.DB.prepare(
+          `SELECT *
+           FROM movie_links
+           WHERE anime_id=?
+           ORDER BY language, quality`
+        )
+          .bind(animeId)
+          .all();
+
+        return Response.json({
+          success: true,
+          movies: result.results
+        });
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: error.message
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // ADD MOVIE LINK
+    if (
+      url.pathname === "/api/admin/movie-links" &&
+      request.method === "POST"
+    ) {
+      try {
+        const data = await request.json();
+
+        const animeId = Number(data.anime_id);
+        const language = String(data.language || "").trim();
+        const quality = String(data.quality || "").trim();
+        const link = String(data.url || "").trim();
+
+        if (
+          !Number.isInteger(animeId) ||
+          animeId <= 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "Select anime"
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!language) {
+          return Response.json(
+            {
+              success: false,
+              error: "Language required"
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!quality) {
+          return Response.json(
+            {
+              success: false,
+              error: "Quality required"
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!link) {
+          return Response.json(
+            {
+              success: false,
+              error: "Movie URL required"
+            },
+            { status: 400 }
+          );
+        }
+
+        const result = await env.DB.prepare(
+          `INSERT INTO movie_links
+           (anime_id, language, quality, url)
+           VALUES (?, ?, ?, ?)`
+        )
+          .bind(
+            animeId,
+            language,
+            quality,
+            link
+          )
+          .run();
+
+        return Response.json({
+          success: true,
+          id: result.meta.last_row_id
+        });
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: error.message
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // EDIT MOVIE LINK
+    if (
+      /^\/api\/admin\/movie-links\/\d+$/.test(url.pathname) &&
+      request.method === "PUT"
+    ) {
+      try {
+        const id = Number(
+          url.pathname.split("/").pop()
+        );
+
+        const data = await request.json();
+
+        const animeId = Number(data.anime_id);
+        const language = String(data.language || "").trim();
+        const quality = String(data.quality || "").trim();
+        const link = String(data.url || "").trim();
+
+        if (
+          !Number.isInteger(id) ||
+          id <= 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "Invalid movie link ID"
+            },
+            { status: 400 }
+          );
+        }
+
+        if (
+          !Number.isInteger(animeId) ||
+          animeId <= 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "Select anime"
+            },
+            { status: 400 }
+          );
+        }
+
+        if (!language || !quality || !link) {
+          return Response.json(
+            {
+              success: false,
+              error: "All movie fields are required"
+            },
+            { status: 400 }
+          );
+        }
+
+        await env.DB.prepare(
+          `UPDATE movie_links
+           SET
+             anime_id=?,
+             language=?,
+             quality=?,
+             url=?
+           WHERE id=?`
+        )
+          .bind(
+            animeId,
+            language,
+            quality,
+            link,
+            id
+          )
+          .run();
+
+        return Response.json({
+          success: true
+        });
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: error.message
+          },
+          { status: 500 }
+        );
+      }
+    }
+
+    // DELETE MOVIE LINK
+    if (
+      /^\/api\/admin\/movie-links\/\d+$/.test(url.pathname) &&
+      request.method === "DELETE"
+    ) {
+      try {
+        const id = Number(
+          url.pathname.split("/").pop()
+        );
+
+        if (
+          !Number.isInteger(id) ||
+          id <= 0
+        ) {
+          return Response.json(
+            {
+              success: false,
+              error: "Invalid movie link ID"
+            },
+            { status: 400 }
+          );
+        }
+
+        await env.DB.prepare(
+          "DELETE FROM movie_links WHERE id=?"
+        )
+          .bind(id)
+          .run();
+
+        return Response.json({
+          success: true
+        });
+      } catch (error) {
+        return Response.json(
+          {
+            success: false,
+            error: error.message
+          },
+          { status: 500 }
+        );
+      }
+    }
     // NORMAL ANIME SUPER WEBSITE
     return env.ASSETS.fetch(request);
   }
@@ -1041,7 +1287,47 @@ Select an anime to see episodes.
 </div>
 
 </div>
+<!-- MOVIE MANAGER -->
+<div class="card">
+  <h2>🎬 Movie Manager</h2>
 
+  <select id="movieAnime">
+    <option value="">Select Anime / Movie</option>
+  </select>
+
+  <select id="movieLanguage">
+    <option value="Japanese">Japanese Dub</option>
+    <option value="English">English Dub</option>
+    <option value="Hindi">Hindi Dub</option>
+  </select>
+
+  <select id="movieQuality">
+    <option value="720p">720p</option>
+    <option value="1080p">1080p</option>
+  </select>
+
+  <input
+    type="text"
+    id="movieUrl"
+    placeholder="Movie video/embed URL"
+  >
+
+  <button type="button" id="movieSave">
+    Add Movie Link
+  </button>
+
+  <button
+    type="button"
+    id="movieCancel"
+    style="display:none"
+  >
+    Cancel Edit
+  </button>
+
+  <div id="movieStatus"></div>
+
+  <div id="movieList"></div>
+</div>
 <script>
 
 const statusBox =
@@ -1051,7 +1337,329 @@ const animeList =
 document.getElementById("animeList");
 
 let animeCache=[];
+// =====================================================
+// MOVIE MANAGER
+// =====================================================
 
+let movieEditId = null;
+
+const movieAnime =
+document.getElementById("movieAnime");
+
+const movieLanguage =
+document.getElementById("movieLanguage");
+
+const movieQuality =
+document.getElementById("movieQuality");
+
+const movieUrl =
+document.getElementById("movieUrl");
+
+const movieSave =
+document.getElementById("movieSave");
+
+const movieCancel =
+document.getElementById("movieCancel");
+
+const movieStatus =
+document.getElementById("movieStatus");
+
+const movieList =
+document.getElementById("movieList");
+
+async function loadMovieAnime(){
+
+  movieAnime.innerHTML =
+    '<option value="">Select Anime / Movie</option>';
+
+  animeCache.forEach(anime => {
+
+    const option =
+    document.createElement("option");
+
+    option.value = anime.id;
+    option.textContent = anime.title;
+
+    movieAnime.appendChild(option);
+
+  });
+
+}
+
+async function loadMovieLinks(){
+
+  const animeId =
+    movieAnime.value;
+
+  movieList.innerHTML =
+    "Loading movie links...";
+
+  if(!animeId){
+    movieList.innerHTML =
+      "Select an anime/movie.";
+    return;
+  }
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/admin/anime/" +
+        animeId +
+        "/movies"
+      );
+
+    const data =
+      await res.json();
+
+    if(!data.success){
+      movieList.innerHTML =
+        data.error || "Failed to load.";
+      return;
+    }
+
+    if(!data.movies.length){
+      movieList.innerHTML =
+        "No movie links found.";
+      return;
+    }
+
+    movieList.innerHTML = "";
+
+    data.movies.forEach(movie => {
+
+      const div =
+        document.createElement("div");
+
+      div.className = "item";
+
+      div.innerHTML = `
+        <b>${movie.language} Dub</b>
+        - ${movie.quality}
+        <br>
+
+        <small>
+          ${movie.url}
+        </small>
+
+        <br><br>
+
+        <button type="button"
+          onclick='editMovieLink(${JSON.stringify(movie)})'>
+          Edit
+        </button>
+
+        <button type="button"
+          onclick="deleteMovieLink(${movie.id})">
+          Delete
+        </button>
+      `;
+
+      movieList.appendChild(div);
+
+    });
+
+  }catch(error){
+
+    movieList.innerHTML =
+      "Error loading movie links.";
+
+  }
+
+}
+
+function resetMovieForm(){
+
+  movieEditId = null;
+
+  movieLanguage.value = "Japanese";
+  movieQuality.value = "720p";
+  movieUrl.value = "";
+
+  movieSave.textContent =
+    "Add Movie Link";
+
+  movieCancel.style.display =
+    "none";
+
+  movieStatus.textContent = "";
+
+}
+
+function editMovieLink(movie){
+
+  movieEditId = movie.id;
+
+  movieAnime.value =
+    movie.anime_id;
+
+  movieLanguage.value =
+    movie.language;
+
+  movieQuality.value =
+    movie.quality;
+
+  movieUrl.value =
+    movie.url;
+
+  movieSave.textContent =
+    "Update Movie Link";
+
+  movieCancel.style.display =
+    "inline-block";
+
+  movieStatus.textContent =
+    "Editing movie link...";
+
+}
+
+movieAnime.addEventListener(
+  "change",
+  loadMovieLinks
+);
+
+movieCancel.addEventListener(
+  "click",
+  resetMovieForm
+);
+
+movieSave.addEventListener(
+  "click",
+  async function(){
+
+    const animeId =
+      Number(movieAnime.value);
+
+    const language =
+      movieLanguage.value;
+
+    const quality =
+      movieQuality.value;
+
+    const url =
+      movieUrl.value.trim();
+
+    if(!animeId){
+      movieStatus.textContent =
+        "Select anime/movie.";
+      return;
+    }
+
+    if(!url){
+      movieStatus.textContent =
+        "Enter movie URL.";
+      return;
+    }
+
+    movieStatus.textContent =
+      "Saving...";
+
+    try{
+
+      const apiUrl =
+        movieEditId
+        ? "/api/admin/movie-links/" +
+          movieEditId
+        : "/api/admin/movie-links";
+
+      const method =
+        movieEditId ? "PUT" : "POST";
+
+      const res =
+        await fetch(
+          apiUrl,
+          {
+            method,
+            headers:{
+              "Content-Type":
+                "application/json"
+            },
+            body:JSON.stringify({
+              anime_id: animeId,
+              language,
+              quality,
+              url
+            })
+          }
+        );
+
+      const data =
+        await res.json();
+
+      if(!data.success){
+
+        movieStatus.textContent =
+          data.error ||
+          "Failed to save.";
+
+        return;
+      }
+
+      movieStatus.textContent =
+        movieEditId
+        ? "Movie link updated successfully."
+        : "Movie link added successfully.";
+
+      resetMovieForm();
+
+      movieAnime.value =
+        animeId;
+
+      await loadMovieLinks();
+
+    }catch(error){
+
+      movieStatus.textContent =
+        "Error: " + error.message;
+
+    }
+
+  }
+);
+
+async function deleteMovieLink(id){
+
+  if(!confirm(
+    "Delete this movie link?"
+  )){
+    return;
+  }
+
+  try{
+
+    const res =
+      await fetch(
+        "/api/admin/movie-links/" + id,
+        {
+          method:"DELETE"
+        }
+      );
+
+    const data =
+      await res.json();
+
+    if(!data.success){
+
+      movieStatus.textContent =
+        data.error ||
+        "Delete failed.";
+
+      return;
+    }
+
+    movieStatus.textContent =
+      "Movie link deleted successfully.";
+
+    await loadMovieLinks();
+
+  }catch(error){
+
+    movieStatus.textContent =
+      "Error: " + error.message;
+
+  }
+
+}
 
 // =====================================================
 // LOAD ANIME
