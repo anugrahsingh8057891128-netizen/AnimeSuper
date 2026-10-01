@@ -161,7 +161,7 @@ export default {
     ) {
       try {
         const result = await env.DB.prepare(
-          `SELECT id, title, poster, description, created_at
+          `SELECT id, title, poster, description, movie, created_at
            FROM anime
            ORDER BY id DESC`
         ).all();
@@ -194,6 +194,9 @@ export default {
         const description =
           String(body.description || "").trim();
 
+        const movie =
+          body.movie ? 1 : 0;
+
         if (!title) {
           return Response.json(
             {
@@ -206,10 +209,10 @@ export default {
 
         const result = await env.DB.prepare(
           `INSERT INTO anime
-           (title, poster, description)
-           VALUES (?, ?, ?)`
+           (title, poster, description, movie)
+           VALUES (?, ?, ?, ?)`
         )
-          .bind(title, poster, description)
+          .bind(title, poster, description, movie)
           .run();
 
         return Response.json({
@@ -244,6 +247,9 @@ export default {
         const description =
           String(body.description || "").trim();
 
+        const movie =
+          body.movie ? 1 : 0;
+
         if (!Number.isInteger(id) || id <= 0) {
           return Response.json(
             {
@@ -266,13 +272,14 @@ export default {
 
         await env.DB.prepare(
           `UPDATE anime
-           SET title=?, poster=?, description=?
+           SET title=?, poster=?, description=?, movie=?
            WHERE id=?`
         )
           .bind(
             title,
             poster,
             description,
+            movie,
             id
           )
           .run();
@@ -1231,6 +1238,10 @@ id="poster"
 placeholder="Poster URL"
 >
 
+<label style="display:block;margin:8px 0;">
+<input type="checkbox" id="movie"> Movie
+</label>
+
 <textarea
 id="description"
 placeholder="Description"
@@ -1962,6 +1973,11 @@ document
 .value
 .trim();
 
+const movie=
+document
+.getElementById("movie")
+.checked;
+
 if(!title){
 
 statusBox.textContent=
@@ -1995,7 +2011,8 @@ headers:{
 body:JSON.stringify({
 title,
 poster,
-description
+description,
+movie
 })
 }
 );
@@ -2050,6 +2067,10 @@ document
 .getElementById("description")
 .value=
 item.description || "";
+
+document
+.getElementById("movie")
+.checked=Boolean(item.movie);
 
 const saveButton=
 document.getElementById("animeSave");
