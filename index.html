@@ -1044,7 +1044,7 @@ Coming Soon
 
 /* ANIME WITH SEASONS */
 
-else if(seasons[id]){
+else if(seasons[id] && Object.keys(seasons[id]).length > 0){
 
 watchButton.style.display="none";
 
@@ -1057,7 +1057,7 @@ renderSeasonEpisodes();
 
 /* NORMAL EPISODES */
 
-else if(videos[id]){
+else if(videos[id] && Object.keys(videos[id]).length > 0){
 
 watchButton.style.display="none";
 
