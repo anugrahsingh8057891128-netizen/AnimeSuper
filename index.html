@@ -785,6 +785,8 @@ let currentEpisode=null;
 let currentSeason=1;
 let currentQuality=null;
 let currentAudio=null;
+let episodeLanguages={};
+let episodeQualities={};
 
 const video=
 document.getElementById("video");
@@ -863,6 +865,8 @@ async function loadAnimeContentFromD1(id){
 
     videos[id]={};
     seasons[id]={};
+    episodeLanguages[id]=[];
+    episodeQualities[id]=new Set();
 
     if(episodeData.success){
       episodeData.episodes.forEach(ep=>{
@@ -877,6 +881,18 @@ async function loadAnimeContentFromD1(id){
         }
 
         seasons[id][season].episodes.push(Number(ep.episode));
+
+        if(ep.language){
+          if(!episodeLanguages[id]) episodeLanguages[id]=[];
+          if(!episodeLanguages[id].includes(ep.language)){
+            episodeLanguages[id].push(ep.language);
+          }
+        }
+
+        if(!episodeQualities[id]) episodeQualities[id]=new Set();
+        if(ep.url_360) episodeQualities[id].add("360p");
+        if(ep.url_720) episodeQualities[id].add("720p");
+        if(ep.url_1080) episodeQualities[id].add("1080p");
 
         videos[id][episode]={};
         if(ep.url_360) videos[id][episode]["360p"]=ep.url_360;
@@ -1155,6 +1171,33 @@ seasons[currentAnime]
 container.innerHTML=
 "<h2>Episodes</h2>";
 
+const audioList=
+episodeLanguages[currentAnime] || [];
+
+const qualityList=
+episodeQualities[currentAnime]
+? Array.from(episodeQualities[currentAnime])
+.sort((a,b)=>parseInt(b)-parseInt(a))
+: [];
+
+if(audioList.length || qualityList.length){
+
+const notice=
+document.createElement("div");
+
+notice.className="notice";
+
+notice.innerHTML=
+"Audio: "+
+audioList.join(" • ")+
+"<br><br>"+
+"Quality: "+
+qualityList.join(" • ");
+
+container.appendChild(notice);
+
+}
+
 const list=
 document.createElement("div");
 
@@ -1201,6 +1244,33 @@ Object.keys(videos[currentAnime]);
 
 container.innerHTML=
 "<h2>Episodes</h2>";
+
+const audioList=
+episodeLanguages[currentAnime] || [];
+
+const qualityList=
+episodeQualities[currentAnime]
+? Array.from(episodeQualities[currentAnime])
+.sort((a,b)=>parseInt(b)-parseInt(a))
+: [];
+
+if(audioList.length || qualityList.length){
+
+const notice=
+document.createElement("div");
+
+notice.className="notice";
+
+notice.innerHTML=
+"Audio: "+
+audioList.join(" • ")+
+"<br><br>"+
+"Quality: "+
+qualityList.join(" • ");
+
+container.appendChild(notice);
+
+}
 
 const list=
 document.createElement("div");
