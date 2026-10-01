@@ -427,17 +427,19 @@ export default {
              anime_id,
              season,
              episode,
+             language,
              title,
              url_360,
              url_720,
              url_1080
            )
-           VALUES (?, ?, ?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
         )
           .bind(
             animeId,
             season,
             episode,
+            String(data.language || "Hindi"),
             String(data.title || ""),
             String(data.url_360 || ""),
             String(data.url_720 || ""),
@@ -523,6 +525,7 @@ export default {
              anime_id=?,
              season=?,
              episode=?,
+             language=?,
              title=?,
              url_360=?,
              url_720=?,
@@ -533,6 +536,7 @@ export default {
             animeId,
             season,
             episode,
+            String(data.language || "Hindi"),
             String(data.title || ""),
             String(data.url_360 || ""),
             String(data.url_720 || ""),
@@ -1312,6 +1316,12 @@ type="number"
 min="1"
 placeholder="Episode Number"
 >
+
+<select id="episodeLanguage">
+<option value="Hindi">Hindi Dub</option>
+<option value="English">English Dub</option>
+<option value="Japanese">Japanese Dub</option>
+</select>
 
 <input
 id="episodeTitle"
@@ -2335,6 +2345,7 @@ title.className=
 title.textContent=
 "S"+ep.season+
 " E"+ep.episode+
+" ["+(ep.language || "Hindi")+"]"+
 (ep.title
 ? " — "+ep.title
 : "");
@@ -2432,6 +2443,10 @@ document
 document
 .getElementById("episodeNumber")
 .value=ep.episode || "";
+
+document
+.getElementById("episodeLanguage")
+.value=ep.language || "Hindi";
 
 document
 .getElementById("episodeTitle")
@@ -2574,6 +2589,11 @@ document
 .getElementById("episodeNumber")
 .value;
 
+const language=
+document
+.getElementById("episodeLanguage")
+.value;
+
 const title=
 document
 .getElementById("episodeTitle")
@@ -2657,6 +2677,7 @@ body:JSON.stringify({
 anime_id,
 season,
 episode,
+language,
 title,
 url_360,
 url_720,
