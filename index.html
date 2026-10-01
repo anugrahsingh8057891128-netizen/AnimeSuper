@@ -398,7 +398,7 @@ class="player-select">
    ANIME / MOVIES
 ================================ */
 
-const anime={
+let anime={
 
 cuckoos:{
   title:"A Couple of Cuckoos",
@@ -552,7 +552,7 @@ hyouka:{
    EPISODE VIDEOS
 ================================ */
 
-const videos={
+let videos={
 
 cuckoos:{
 
@@ -627,7 +627,7 @@ slime:{
    MOVIES
 ================================ */
 
-const movies={
+let movies={
 
 /* YOUR NAME */
 
@@ -752,7 +752,7 @@ whiskeraway:{
    SEASONS
 ================================ */
 
-const seasons={
+let seasons={
 
 slime:{
 
@@ -833,6 +833,79 @@ showPage("homePage");
 /* ================================
    HOME
 ================================ */
+async function loadAnimeFromD1(){
+  try {
+    const response=await fetch("/api/public/anime");
+    const data=await response.json();
+    if(!data.success) throw new Error(data.error || "Failed to load anime");
+
+    anime={};
+    data.anime.forEach(item=>{
+      anime[String(item.id)]={
+        title:item.title,
+        poster:item.poster,
+        description:item.description,
+        movie:Boolean(item.movie),
+        available:Boolean(item.available)
+      };
+    });
+
+    renderAnime();
+  }catch(error){
+    console.error("D1 anime load error:",error);
+    renderAnime();
+  }
+}
+async function loadAnimeContentFromD1(id){
+  try {
+    const episodeResponse=await fetch("/api/public/anime/"+id+"/episodes");
+    const episodeData=await episodeResponse.json();
+
+    videos[id]={};
+    seasons[id]={};
+
+    if(episodeData.success){
+      episodeData.episodes.forEach(ep=>{
+        const season=String(ep.season || 1);
+        const episode=String(ep.episode);
+
+        if(!seasons[id][season]){
+          seasons[id][season]={
+            name:"Season "+season,
+            episodes:[]
+          };
+        }
+
+        seasons[id][season].episodes.push(Number(ep.episode));
+
+        videos[id][episode]={};
+        if(ep.url_360) videos[id][episode]["360p"]=ep.url_360;
+        if(ep.url_720) videos[id][episode]["720p"]=ep.url_720;
+        if(ep.url_1080) videos[id][episode]["1080p"]=ep.url_1080;
+      });
+    }
+
+    const movieResponse=await fetch("/api/public/anime/"+id+"/movies");
+    const movieData=await movieResponse.json();
+
+    movies[id]={};
+
+    if(movieData.success){
+      movieData.movies.forEach(movie=>{
+        const language=movie.language.replace(" Dub","");
+        if(!movies[id][language]) movies[id][language]={};
+        movies[id][language][movie.quality]=movie.url;
+      });
+    }
+
+    return true;
+  }catch(error){
+    console.error("D1 content load error:",error);
+    return false;
+  }
+}
+
+
 
 function renderAnime(
 list=Object.keys(anime)
@@ -878,15 +951,18 @@ grid.appendChild(card);
    DETAILS
 ================================ */
 
-function openDetails(id){
+async function openDetails(id){
 
 stopPlayers();
 
 currentAnime=id;
 
-if(id==="slime"){
-currentSeason=1;
+await loadAnimeContentFromD1(id);
+
+if(seasons[id]){
+currentSeason=Number(Object.keys(seasons[id])[0]);
 }
+
 
 const data=anime[id];
 
@@ -1555,7 +1631,7 @@ renderAnime(result);
 
 /* START */
 
-renderAnime();
+loadAnimeFromD1();
 
 </script>
 
