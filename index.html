@@ -1324,16 +1324,22 @@ videos[currentAnime]
 
 if(!url)return;
 
+video.pause();
+video.removeAttribute("src");
+video.load();
+
 embedPlayer.src="";
 embedPlayer.style.display="none";
+video.style.display="none";
+
+if(url.includes("vidmoly.org/embed-")){
+
+embedPlayer.src=url;
+embedPlayer.style.display="block";
+
+}else{
 
 video.style.display="block";
-
-video.pause();
-
-video.removeAttribute("src");
-
-video.load();
 
 setTimeout(()=>{
 
@@ -1341,6 +1347,8 @@ video.src=url;
 video.load();
 
 },80);
+
+}
 
 }
 
