@@ -1278,6 +1278,7 @@ Loading...
 Episode Manager
 </h3>
 
+<input id="episodeAnimeSearch" type="text" placeholder="Search Anime..." style="margin-bottom:8px;">
 <select id="episodeAnime">
 
 <option value="">
@@ -1352,6 +1353,7 @@ Select an anime to see episodes.
 <div class="card">
   <h2>🎬 Movie Manager</h2>
 
+<input id="movieAnimeSearch" type="text" placeholder="Search Anime / Movie..." style="margin-bottom:8px;">
   <select id="movieAnime">
     <option value="">Select Anime / Movie</option>
   </select>
@@ -1446,6 +1448,21 @@ async function loadMovieAnime(){
   });
 
 }
+
+
+function filterMovieAnime(){
+
+const search=document.getElementById("movieAnimeSearch").value.toLowerCase();
+const select=document.getElementById("movieAnime");
+
+Array.from(select.options).forEach((option,index)=>{
+if(index===0)return;
+option.hidden=!option.textContent.toLowerCase().includes(search);
+});
+
+}
+
+document.getElementById("movieAnimeSearch").addEventListener("input",filterMovieAnime);
 
 async function loadMovieLinks(){
 
@@ -2204,6 +2221,21 @@ select.value=oldValue;
 }
 
 }
+
+function filterEpisodeAnime(){
+
+const search=document.getElementById("episodeAnimeSearch").value.toLowerCase();
+const select=document.getElementById("episodeAnime");
+
+Array.from(select.options).forEach((option,index)=>{
+if(index===0)return;
+option.hidden=!option.textContent.toLowerCase().includes(search);
+});
+
+}
+
+document.getElementById("episodeAnimeSearch").addEventListener("input",filterEpisodeAnime);
+
 
 
 // =====================================================
