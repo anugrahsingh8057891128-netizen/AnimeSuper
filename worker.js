@@ -105,7 +105,7 @@ export default {
           return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
         }
         const result = await env.DB.prepare(
-          `SELECT id, anime_id, season, episode, title, url_360, url_720, url_1080
+          `SELECT id, anime_id, season, episode, language, title, url_360, url_720, url_1080
            FROM episodes
            WHERE anime_id = ?
            ORDER BY season ASC, episode ASC`
