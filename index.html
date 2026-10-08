@@ -1587,7 +1587,7 @@ qualitySelect.appendChild(option);
 if(!data[currentQuality]){
 
 currentQuality=
-Object.keys(data)[0];
+["1080p","720p","360p"].find(q=>data[q]);
 
 }
 
