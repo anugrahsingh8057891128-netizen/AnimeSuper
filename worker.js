@@ -125,7 +125,7 @@ export default {
           return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
         }
         const result = await env.DB.prepare(
-          `SELECT id, anime_id, language, quality, url
+          `SELECT id, anime_id, language, quality, url, url_server2
            FROM movie_links
            WHERE anime_id = ?
            ORDER BY language ASC, quality ASC`
@@ -650,6 +650,7 @@ export default {
         const language = String(data.language || "").trim();
         const quality = String(data.quality || "").trim();
         const link = String(data.url || "").trim();
+        const linkServer2 = String(data.url_server2 || "").trim();
 
         if (
           !Number.isInteger(animeId) ||
@@ -696,14 +697,15 @@ export default {
 
         const result = await env.DB.prepare(
           `INSERT INTO movie_links
-           (anime_id, language, quality, url)
-           VALUES (?, ?, ?, ?)`
+           (anime_id, language, quality, url, url_server2)
+           VALUES (?, ?, ?, ?, ?)`
         )
           .bind(
             animeId,
             language,
             quality,
-            link
+            link,
+            linkServer2
           )
           .run();
 
@@ -738,6 +740,7 @@ export default {
         const language = String(data.language || "").trim();
         const quality = String(data.quality || "").trim();
         const link = String(data.url || "").trim();
+        const linkServer2 = String(data.url_server2 || "").trim();
 
         if (
           !Number.isInteger(id) ||
@@ -781,7 +784,8 @@ export default {
              anime_id=?,
              language=?,
              quality=?,
-             url=?
+             url=?,
+             url_server2=?
            WHERE id=?`
         )
           .bind(
@@ -789,6 +793,7 @@ export default {
             language,
             quality,
             link,
+            linkServer2,
             id
           )
           .run();
@@ -1421,7 +1426,13 @@ Select an anime to see episodes.
   <input
     type="text"
     id="movieUrl"
-    placeholder="Movie video/embed URL"
+    placeholder="Movie Server 1 URL"
+  >
+
+  <input
+    type="text"
+    id="movieUrlServer2"
+    placeholder="Movie Server 2 URL"
   >
 
   <button type="button" id="movieSave">

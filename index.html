@@ -765,6 +765,8 @@ whiskeraway:{
 
 };
 
+let movieServers={};
+
 
 /* ================================
    SEASONS
@@ -943,12 +945,18 @@ async function loadAnimeContentFromD1(id){
     const movieData=await movieResponse.json();
 
     movies[id]={};
+    movieServers[id]={};
 
     if(movieData.success){
       movieData.movies.forEach(movie=>{
         const language=movie.language.replace(" Dub","");
         if(!movies[id][language]) movies[id][language]={};
         movies[id][language][movie.quality]=movie.url;
+        if(!movieServers[id][language]) movieServers[id][language]={};
+        movieServers[id][language][movie.quality]={
+          server1:movie.url || "",
+          server2:movie.url_server2 || ""
+        };
       });
     }
 
@@ -1631,6 +1639,8 @@ qualitySelect.style.display="inline-block";
 
 createMovieControls();
 
+setupMovieServers();
+
 loadMovieEmbed();
 
 updateMovieNotice();
@@ -1711,7 +1721,7 @@ movies[currentAnime]
 
 qualitySelect.innerHTML="";
 
-["1080p","720p","360p"].filter(q=>data[q]).forEach(q=>{
+["1080p","720p","360p"].filter(q=>data[q] || movieServers[currentAnime]?.[currentAudio]?.[q]?.server2).forEach(q=>{
 
 const option=
 document.createElement("option");
@@ -1738,6 +1748,10 @@ qualitySelect.onchange=()=>{
 currentQuality=
 qualitySelect.value;
 
+currentServer=null;
+
+setupMovieServers();
+
 loadMovieEmbed();
 
 updateMovieNotice();
@@ -1748,15 +1762,107 @@ updateMovieNotice();
 
 
 /* ================================
+   MOVIE SERVER
+================================ */
+
+function setupMovieServers(){
+
+const serverSelect=
+document.getElementById("serverSelect");
+
+serverSelect.innerHTML="";
+
+const data=
+movieServers[currentAnime]
+?.[currentAudio]
+?.[currentQuality];
+
+if(!data)return;
+
+const servers=[];
+
+if(data.server1){
+servers.push({
+id:"server1",
+name:"Server 1"
+});
+}
+
+if(data.server2){
+servers.push({
+id:"server2",
+name:"Server 2"
+});
+}
+
+if(!servers.length)return;
+
+if(
+!currentServer ||
+!data[currentServer]
+){
+currentServer=servers[0].id;
+}
+
+servers.forEach(server=>{
+
+const button=
+document.createElement("button");
+
+button.type="button";
+button.className="player-select";
+
+button.textContent=
+server.name;
+
+if(server.id===currentServer){
+button.classList.add("active");
+}
+
+button.onclick=()=>{
+
+currentServer=server.id;
+
+setupMovieServers();
+
+loadMovieEmbed();
+
+};
+
+serverSelect.appendChild(button);
+
+});
+
+}
+
+
+/* ================================
    LOAD MOVIE
 ================================ */
 
+
+
 function loadMovieEmbed(){
 
-const url=
-movies[currentAnime]
+const serverData=
+movieServers[currentAnime]
 ?.[currentAudio]
 ?.[currentQuality];
+
+if(!serverData)return;
+
+if(
+!currentServer ||
+!serverData[currentServer]
+){
+currentServer=
+serverData.server1
+? "server1"
+: "server2";
+}
+
+const url=
+serverData[currentServer];
 
 if(!url)return;
 
