@@ -156,6 +156,21 @@ main{padding:18px}
   outline:none;
 }
 
+#serverSelect{
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:10px;
+}
+
+#serverSelect button{
+  cursor:pointer;
+}
+
+#serverSelect button.active{
+  border-color:#fff;
+}
+
 .episodes{margin-top:20px}
 .episodes h2{margin-bottom:12px}
 
@@ -380,6 +395,9 @@ Quality:
 id="qualitySelect"
 class="player-select">
 </select>
+
+<div id="serverSelect" class="player-select">
+</div>
 
 </div>
 
@@ -784,9 +802,11 @@ let currentAnime=null;
 let currentEpisode=null;
 let currentSeason=1;
 let currentQuality=null;
+let currentServer=null;
 let currentAudio=null;
 let episodeLanguages={};
 let episodeQualities={};
+let episodeServers={};
 
 const video=
 document.getElementById("video");
@@ -867,6 +887,7 @@ async function loadAnimeContentFromD1(id){
     seasons[id]={};
     episodeLanguages[id]=[];
     episodeQualities[id]=new Set();
+    episodeServers[id]={};
 
     if(episodeData.success){
       episodeData.episodes.forEach(ep=>{
@@ -890,14 +911,31 @@ async function loadAnimeContentFromD1(id){
         }
 
         if(!episodeQualities[id]) episodeQualities[id]=new Set();
-        if(ep.url_360) episodeQualities[id].add("360p");
-        if(ep.url_720) episodeQualities[id].add("720p");
-        if(ep.url_1080) episodeQualities[id].add("1080p");
+        if(ep.url_360 || ep.url_360_server2) episodeQualities[id].add("360p");
+        if(ep.url_720 || ep.url_720_server2) episodeQualities[id].add("720p");
+        if(ep.url_1080 || ep.url_1080_server2) episodeQualities[id].add("1080p");
 
         videos[id][episode]={};
         if(ep.url_360) videos[id][episode]["360p"]=ep.url_360;
         if(ep.url_720) videos[id][episode]["720p"]=ep.url_720;
         if(ep.url_1080) videos[id][episode]["1080p"]=ep.url_1080;
+
+        episodeServers[id][episode]={};
+
+        episodeServers[id][episode]["360p"]={
+          server1:ep.url_360 || "",
+          server2:ep.url_360_server2 || ""
+        };
+
+        episodeServers[id][episode]["720p"]={
+          server1:ep.url_720 || "",
+          server2:ep.url_720_server2 || ""
+        };
+
+        episodeServers[id][episode]["1080p"]={
+          server1:ep.url_1080 || "",
+          server2:ep.url_1080_server2 || ""
+        };
       });
     }
 
@@ -1327,9 +1365,88 @@ audioLabel.style.display="none";
 
 qualitySelect.style.display="inline-block";
 
+currentServer=null;
+
 setupDirectQualities();
 
+setupDirectServers();
+
 loadDirectVideo();
+
+}
+
+
+/* ================================
+   DIRECT SERVER
+================================ */
+
+function setupDirectServers(){
+
+const serverSelect=
+document.getElementById("serverSelect");
+
+serverSelect.innerHTML="";
+
+const data=
+episodeServers[currentAnime]
+?.[currentEpisode]
+?.[currentQuality];
+
+if(!data)return;
+
+const servers=[];
+
+if(data.server1){
+servers.push({
+id:"server1",
+name:"Server 1"
+});
+}
+
+if(data.server2){
+servers.push({
+id:"server2",
+name:"Server 2"
+});
+}
+
+if(!servers.length)return;
+
+if(
+!currentServer ||
+!data[currentServer]
+){
+currentServer=servers[0].id;
+}
+
+servers.forEach(server=>{
+
+const button=
+document.createElement("button");
+
+button.type="button";
+button.className="player-select";
+
+button.textContent=
+server.name;
+
+if(server.id===currentServer){
+button.classList.add("active");
+}
+
+button.onclick=()=>{
+
+currentServer=server.id;
+
+setupDirectServers();
+
+loadDirectVideo();
+
+};
+
+serverSelect.appendChild(button);
+
+});
 
 }
 
@@ -1343,12 +1460,15 @@ function setupDirectQualities(){
 qualitySelect.innerHTML="";
 
 const data=
-videos[currentAnime]
+episodeServers[currentAnime]
 ?.[currentEpisode];
 
 if(!data)return;
 
-const qualities=["1080p","720p","360p"].filter(q=>data[q]);
+const qualities=["1080p","720p","360p"].filter(q=>
+data[q] &&
+(data[q].server1 || data[q].server2)
+);
 
 currentQuality=
 qualities[0];
@@ -1373,6 +1493,10 @@ qualitySelect.onchange=()=>{
 currentQuality=
 qualitySelect.value;
 
+currentServer=null;
+
+setupDirectServers();
+
 loadDirectVideo();
 
 };
@@ -1386,10 +1510,25 @@ loadDirectVideo();
 
 function loadDirectVideo(){
 
-const url=
-videos[currentAnime]
+const serverData=
+episodeServers[currentAnime]
 ?.[currentEpisode]
 ?.[currentQuality];
+
+if(!serverData)return;
+
+if(
+!currentServer ||
+!serverData[currentServer]
+){
+currentServer=
+serverData.server1
+? "server1"
+: "server2";
+}
+
+const url=
+serverData[currentServer];
 
 if(!url)return;
 

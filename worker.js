@@ -105,7 +105,7 @@ export default {
           return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
         }
         const result = await env.DB.prepare(
-          `SELECT id, anime_id, season, episode, language, title, url_360, url_720, url_1080
+          `SELECT id, anime_id, season, episode, language, title, url_360, url_720, url_1080, url_360_server2, url_720_server2, url_1080_server2
            FROM episodes
            WHERE anime_id = ?
            ORDER BY season ASC, episode ASC`
@@ -431,9 +431,12 @@ export default {
              title,
              url_360,
              url_720,
-             url_1080
+             url_1080,
+             url_360_server2,
+             url_720_server2,
+             url_1080_server2
            )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
           .bind(
             animeId,
@@ -443,7 +446,10 @@ export default {
             String(data.title || ""),
             String(data.url_360 || ""),
             String(data.url_720 || ""),
-            String(data.url_1080 || "")
+            String(data.url_1080 || ""),
+            String(data.url_360_server2 || ""),
+            String(data.url_720_server2 || ""),
+            String(data.url_1080_server2 || "")
           )
           .run();
 
@@ -529,7 +535,10 @@ export default {
              title=?,
              url_360=?,
              url_720=?,
-             url_1080=?
+             url_1080=?,
+             url_360_server2=?,
+             url_720_server2=?,
+             url_1080_server2=?
            WHERE id=?`
         )
           .bind(
@@ -541,6 +550,9 @@ export default {
             String(data.url_360 || ""),
             String(data.url_720 || ""),
             String(data.url_1080 || ""),
+            String(data.url_360_server2 || ""),
+            String(data.url_720_server2 || ""),
+            String(data.url_1080_server2 || ""),
             id
           )
           .run();
@@ -1341,6 +1353,21 @@ placeholder="720p Video URL"
 <input
 id="url1080"
 placeholder="1080p Video URL"
+>
+
+<input
+id="url360Server2"
+placeholder="360p Server 2 URL"
+>
+
+<input
+id="url720Server2"
+placeholder="720p Server 2 URL"
+>
+
+<input
+id="url1080Server2"
+placeholder="1080p Server 2 URL"
 >
 
 <button type="button" id="episodeSave">
@@ -2362,12 +2389,18 @@ document.createElement("div");
 urls.className="urlText";
 
 urls.innerHTML=
-"360p: "+
+"360p — Server 1: "+
 escapeHtml(ep.url_360 || "Not set")+
-"<br>720p: "+
+"<br>360p — Server 2: "+
+escapeHtml(ep.url_360_server2 || "Not set")+
+"<br>720p — Server 1: "+
 escapeHtml(ep.url_720 || "Not set")+
-"<br>1080p: "+
-escapeHtml(ep.url_1080 || "Not set");
+"<br>720p — Server 2: "+
+escapeHtml(ep.url_720_server2 || "Not set")+
+"<br>1080p — Server 1: "+
+escapeHtml(ep.url_1080 || "Not set")+
+"<br>1080p — Server 2: "+
+escapeHtml(ep.url_1080_server2 || "Not set");
 
 row.appendChild(urls);
 
@@ -2464,6 +2497,18 @@ document
 document
 .getElementById("url1080")
 .value=ep.url_1080 || "";
+
+document
+.getElementById("url360Server2")
+.value=ep.url_360_server2 || "";
+
+document
+.getElementById("url720Server2")
+.value=ep.url_720_server2 || "";
+
+document
+.getElementById("url1080Server2")
+.value=ep.url_1080_server2 || "";
 
 const saveButton=
 document.getElementById(
@@ -2619,6 +2664,24 @@ document
 .value
 .trim();
 
+const url_360_server2=
+document
+.getElementById("url360Server2")
+.value
+.trim();
+
+const url_720_server2=
+document
+.getElementById("url720Server2")
+.value
+.trim();
+
+const url_1080_server2=
+document
+.getElementById("url1080Server2")
+.value
+.trim();
+
 const saveButton=
 document.getElementById(
 "episodeSave"
@@ -2682,7 +2745,10 @@ language,
 title,
 url_360,
 url_720,
-url_1080
+url_1080,
+url_360_server2,
+url_720_server2,
+url_1080_server2
 })
 }
 );
