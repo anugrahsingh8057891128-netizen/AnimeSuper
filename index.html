@@ -1348,8 +1348,7 @@ videos[currentAnime]
 
 if(!data)return;
 
-const qualities=
-Object.keys(data);
+const qualities=["1080p","720p","360p"].filter(q=>data[q]);
 
 currentQuality=
 qualities[0];
