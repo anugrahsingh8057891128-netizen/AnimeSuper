@@ -1573,8 +1573,7 @@ movies[currentAnime]
 
 qualitySelect.innerHTML="";
 
-Object.keys(data)
-.forEach(q=>{
+["1080p","720p","360p"].filter(q=>data[q]).forEach(q=>{
 
 const option=
 document.createElement("option");
