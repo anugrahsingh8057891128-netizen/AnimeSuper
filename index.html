@@ -1031,7 +1031,7 @@ ${audioList.join(" • ")}
 <br><br>
 
 Quality:
-${Array.from(qualitySet).join(" • ")}
+${["1080p","720p","360p"].filter(q=>qualitySet.has(q)).join(" • ")}
 
 </div>
 
