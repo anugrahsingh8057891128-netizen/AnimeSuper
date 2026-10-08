@@ -1386,6 +1386,7 @@ Select an anime to see episodes.
   </select>
 
   <select id="movieQuality">
+    <option value="360p">360p</option>
     <option value="720p">720p</option>
     <option value="1080p">1080p</option>
   </select>
