@@ -685,11 +685,11 @@ export default {
           );
         }
 
-        if (!link) {
+        if (!link && !linkServer2) {
           return Response.json(
             {
               success: false,
-              error: "Movie URL required"
+              error: "Enter a Vidmoly URL or an Abyss URL"
             },
             { status: 400 }
           );
@@ -768,11 +768,11 @@ export default {
           );
         }
 
-        if (!language || !quality || !link) {
+        if (!language || !quality || (!link && !linkServer2)) {
           return Response.json(
             {
               success: false,
-              error: "All movie fields are required"
+              error: "Language, quality, and at least one video URL are required"
             },
             { status: 400 }
           );
@@ -1361,18 +1361,8 @@ placeholder="1080p Video URL"
 >
 
 <input
-id="url360Server2"
-placeholder="360p Server 2 URL"
->
-
-<input
-id="url720Server2"
-placeholder="720p Server 2 URL"
->
-
-<input
-id="url1080Server2"
-placeholder="1080p Server 2 URL"
+id="urlServer2"
+placeholder="Abyss Video URL (one link)"
 >
 
 <button type="button" id="episodeSave">
@@ -1417,23 +1407,13 @@ Select an anime to see episodes.
     <option value="Hindi">Hindi Dub</option>
   </select>
 
-  <select id="movieQuality">
-    <option value="360p">360p</option>
-    <option value="720p">720p</option>
-    <option value="1080p">1080p</option>
-  </select>
+  <input type="text" id="movieUrl360" placeholder="Vidmoly 360p URL">
 
-  <input
-    type="text"
-    id="movieUrl"
-    placeholder="Movie Server 1 URL"
-  >
+  <input type="text" id="movieUrl720" placeholder="Vidmoly 720p URL">
 
-  <input
-    type="text"
-    id="movieUrlServer2"
-    placeholder="Movie Server 2 URL"
-  >
+  <input type="text" id="movieUrl1080" placeholder="Vidmoly 1080p URL">
+
+  <input type="text" id="movieUrlServer2" placeholder="Abyss Video URL (one link)">
 
   <button type="button" id="movieSave">
     Add Movie Link
@@ -1472,11 +1452,17 @@ document.getElementById("movieAnime");
 const movieLanguage =
 document.getElementById("movieLanguage");
 
-const movieQuality =
-document.getElementById("movieQuality");
+const movieUrl360 =
+document.getElementById("movieUrl360");
 
-const movieUrl =
-document.getElementById("movieUrl");
+const movieUrl720 =
+document.getElementById("movieUrl720");
+
+const movieUrl1080 =
+document.getElementById("movieUrl1080");
+
+const movieUrlServer2 =
+document.getElementById("movieUrlServer2");
 
 const movieSave =
 document.getElementById("movieSave");
@@ -1611,8 +1597,10 @@ function resetMovieForm(){
   movieEditId = null;
 
   movieLanguage.value = "Japanese";
-  movieQuality.value = "720p";
-  movieUrl.value = "";
+  movieUrl360.value = "";
+  movieUrl720.value = "";
+  movieUrl1080.value = "";
+  movieUrlServer2.value = "";
 
   movieSave.textContent =
     "Add Movie Link";
@@ -1634,11 +1622,14 @@ function editMovieLink(movie){
   movieLanguage.value =
     movie.language;
 
-  movieQuality.value =
-    movie.quality;
+  movieUrl360.value = "";
+  movieUrl720.value = "";
+  movieUrl1080.value = "";
+  movieUrlServer2.value = movie.url_server2 || "";
 
-  movieUrl.value =
-    movie.url;
+  if (movie.quality === "360p") movieUrl360.value = movie.url || "";
+  if (movie.quality === "720p") movieUrl720.value = movie.url || "";
+  if (movie.quality === "1080p") movieUrl1080.value = movie.url || "";
 
   movieSave.textContent =
     "Update Movie Link";
@@ -1665,93 +1656,88 @@ movieSave.addEventListener(
   "click",
   async function(){
 
-    const animeId =
-      Number(movieAnime.value);
+    const animeId = Number(movieAnime.value);
+    const language = movieLanguage.value;
+    const abyssUrl = movieUrlServer2.value.trim();
 
-    const language =
-      movieLanguage.value;
-
-    const quality =
-      movieQuality.value;
-
-    const url =
-      movieUrl.value.trim();
+    const qualityUrls = {
+      "360p": movieUrl360.value.trim(),
+      "720p": movieUrl720.value.trim(),
+      "1080p": movieUrl1080.value.trim()
+    };
 
     if(!animeId){
-      movieStatus.textContent =
-        "Select anime/movie.";
+      movieStatus.textContent = "Select anime/movie.";
       return;
     }
 
-    if(!url){
-      movieStatus.textContent =
-        "Enter movie URL.";
+    if(!Object.values(qualityUrls).some(Boolean) && !abyssUrl){
+      movieStatus.textContent = "Enter at least one Vidmoly URL or Abyss URL.";
       return;
     }
 
-    movieStatus.textContent =
-      "Saving...";
+    movieStatus.textContent = "Saving...";
 
     try{
+      const listRes = await fetch("/api/admin/anime/" + animeId + "/movies");
+      const listData = await listRes.json();
 
-      const apiUrl =
-        movieEditId
-        ? "/api/admin/movie-links/" +
-          movieEditId
-        : "/api/admin/movie-links";
-
-      const method =
-        movieEditId ? "PUT" : "POST";
-
-      const res =
-        await fetch(
-          apiUrl,
-          {
-            method,
-            headers:{
-              "Content-Type":
-                "application/json"
-            },
-            body:JSON.stringify({
-              anime_id: animeId,
-              language,
-              quality,
-              url
-            })
-          }
-        );
-
-      const data =
-        await res.json();
-
-      if(!data.success){
-
-        movieStatus.textContent =
-          data.error ||
-          "Failed to save.";
-
+      if(!listData.success){
+        movieStatus.textContent = listData.error || "Could not load existing movie links.";
         return;
       }
 
-      movieStatus.textContent =
-        movieEditId
-        ? "Movie link updated successfully."
-        : "Movie link added successfully.";
+      const existing = (listData.movies || []).filter(movie => movie.language === language);
+      let savedCount = 0;
 
+      for(const quality of ["360p", "720p", "1080p"]){
+        const old = existing.find(movie => movie.quality === quality);
+        const enteredUrl = qualityUrls[quality];
+        const url = enteredUrl || (old ? old.url : "");
+        const url_server2 = abyssUrl || (old ? (old.url_server2 || "") : "");
+
+        if(!url && !url_server2) continue;
+        if(!enteredUrl && !abyssUrl) continue;
+
+        const apiUrl = old
+          ? "/api/admin/movie-links/" + old.id
+          : "/api/admin/movie-links";
+
+        const res = await fetch(apiUrl, {
+          method: old ? "PUT" : "POST",
+          headers: {"Content-Type": "application/json"},
+          body: JSON.stringify({
+            anime_id: animeId,
+            language,
+            quality,
+            url,
+            url_server2
+          })
+        });
+
+        const data = await res.json();
+
+        if(!data.success){
+          movieStatus.textContent = data.error || "Failed to save " + quality + ".";
+          return;
+        }
+
+        savedCount++;
+      }
+
+      if(!savedCount){
+        movieStatus.textContent = "No movie links were saved. Enter a Vidmoly URL for at least one quality.";
+        return;
+      }
+
+      movieStatus.textContent = "Movie links saved successfully.";
       resetMovieForm();
-
-      movieAnime.value =
-        animeId;
-
+      movieAnime.value = animeId;
       await loadMovieLinks();
 
     }catch(error){
-
-      movieStatus.textContent =
-        "Error: " + error.message;
-
+      movieStatus.textContent = "Error: " + error.message;
     }
-
   }
 );
 
@@ -2399,19 +2385,21 @@ document.createElement("div");
 
 urls.className="urlText";
 
+const abyssUrl=
+ep.url_360_server2 ||
+ep.url_720_server2 ||
+ep.url_1080_server2 ||
+"Not set";
+
 urls.innerHTML=
-"360p — Server 1: "+
+"Vidmoly 360p: "+
 escapeHtml(ep.url_360 || "Not set")+
-"<br>360p — Server 2: "+
-escapeHtml(ep.url_360_server2 || "Not set")+
-"<br>720p — Server 1: "+
+"<br>Vidmoly 720p: "+
 escapeHtml(ep.url_720 || "Not set")+
-"<br>720p — Server 2: "+
-escapeHtml(ep.url_720_server2 || "Not set")+
-"<br>1080p — Server 1: "+
+"<br>Vidmoly 1080p: "+
 escapeHtml(ep.url_1080 || "Not set")+
-"<br>1080p — Server 2: "+
-escapeHtml(ep.url_1080_server2 || "Not set");
+"<br>Abyss Video: "+
+escapeHtml(abyssUrl);
 
 row.appendChild(urls);
 
@@ -2510,16 +2498,8 @@ document
 .value=ep.url_1080 || "";
 
 document
-.getElementById("url360Server2")
-.value=ep.url_360_server2 || "";
-
-document
-.getElementById("url720Server2")
-.value=ep.url_720_server2 || "";
-
-document
-.getElementById("url1080Server2")
-.value=ep.url_1080_server2 || "";
+.getElementById("urlServer2")
+.value=ep.url_360_server2 || ep.url_720_server2 || ep.url_1080_server2 || "";
 
 const saveButton=
 document.getElementById(
@@ -2602,6 +2582,10 @@ document
 .getElementById("url1080")
 .value="";
 
+document
+.getElementById("urlServer2")
+.value="";
+
 const saveButton=
 document.getElementById(
 "episodeSave"
@@ -2675,23 +2659,15 @@ document
 .value
 .trim();
 
-const url_360_server2=
+const url_server2=
 document
-.getElementById("url360Server2")
+.getElementById("urlServer2")
 .value
 .trim();
 
-const url_720_server2=
-document
-.getElementById("url720Server2")
-.value
-.trim();
-
-const url_1080_server2=
-document
-.getElementById("url1080Server2")
-.value
-.trim();
+const url_360_server2=url_server2;
+const url_720_server2=url_server2;
+const url_1080_server2=url_server2;
 
 const saveButton=
 document.getElementById(

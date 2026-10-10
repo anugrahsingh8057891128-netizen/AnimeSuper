@@ -956,11 +956,13 @@ async function loadAnimeContentFromD1(id){
       movieData.movies.forEach(movie=>{
         const language=movie.language.replace(" Dub","");
         if(!movies[id][language]) movies[id][language]={};
-        movies[id][language][movie.quality]=movie.url;
+        const server2Url=movie.url_server2 || "";
+        const server1Url=(movie.url && movie.url !== server2Url) ? movie.url : "";
+        movies[id][language][movie.quality]=server1Url;
         if(!movieServers[id][language]) movieServers[id][language]={};
         movieServers[id][language][movie.quality]={
-          server1:movie.url || "",
-          server2:movie.url_server2 || ""
+          server1:server1Url,
+          server2:server2Url
         };
       });
     }
