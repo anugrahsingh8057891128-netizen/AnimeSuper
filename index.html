@@ -1434,6 +1434,8 @@ if(
 currentServer=servers[0].id;
 }
 
+qualitySelect.style.display = currentServer === "server2" ? "none" : "inline-block";
+
 servers.forEach(server=>{
 
 const button=
