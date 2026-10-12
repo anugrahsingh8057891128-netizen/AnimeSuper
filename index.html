@@ -270,6 +270,352 @@ main{padding:18px}
     font-size:23px;
   }
 }
+
+/* PREMIUM VIOLET THEME */
+:root{
+  color-scheme:dark;
+  --bg:#08070d;
+  --surface:#12101c;
+  --surface-hover:#1b1729;
+  --accent:#a78bfa;
+  --accent-strong:#8b5cf6;
+  --border:rgba(196,181,253,.16);
+  --muted:#aaa4bb;
+}
+html{scroll-behavior:smooth}
+body{
+  background:radial-gradient(ellipse at 50% -15%,#21133b 0%,#0b0912 42%,var(--bg) 78%);
+  color:#f7f4ff;
+  font-family:Arial,sans-serif;
+  min-height:100vh;
+}
+header{
+  background:rgba(13,11,21,.88);
+  border-bottom:1px solid var(--border);
+  box-shadow:0 8px 30px rgba(0,0,0,.2);
+  -webkit-backdrop-filter:blur(18px);
+  backdrop-filter:blur(18px);
+}
+.logo{
+  color:#c4b5fd;
+  letter-spacing:-.5px;
+  text-shadow:0 0 22px rgba(167,139,250,.24);
+}
+.search input{
+  background:rgba(255,255,255,.055);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:12px 16px;
+  transition:border-color .2s,box-shadow .2s,background .2s;
+}
+.search input:focus{
+  border-color:var(--accent-strong);
+  background:rgba(167,139,250,.06);
+  box-shadow:0 0 0 3px rgba(139,92,246,.13);
+}
+main{max-width:1500px;margin:0 auto}
+.home-title{
+  font-size:clamp(23px,3vw,30px);
+  font-weight:750;
+  letter-spacing:-.6px;
+  margin:8px 0 20px;
+}
+.grid{gap:18px}
+.card{
+  background:linear-gradient(160deg,#191524,#100e18);
+  border:1px solid rgba(196,181,253,.09);
+  border-radius:13px;
+  box-shadow:0 5px 18px rgba(0,0,0,.18);
+  transition:transform .22s ease,border-color .22s ease,box-shadow .22s ease;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(167,139,250,.55);
+  box-shadow:0 12px 28px rgba(0,0,0,.32),0 0 18px rgba(139,92,246,.09);
+}
+.card img{transition:transform .3s ease}
+.card:hover img{transform:scale(1.025)}
+.card-title{
+  padding:12px;
+  line-height:1.45;
+  color:#f1edff;
+}
+.back,.season-select,.player-select,.episode{
+  background:#171321;
+  border:1px solid var(--border);
+  color:#eee8ff;
+  border-radius:9px;
+  transition:background .2s,border-color .2s,transform .2s;
+}
+.back:hover,.season-select:hover,.player-select:hover{
+  background:#251b39;
+  border-color:var(--accent-strong);
+}
+.watch-btn{
+  background:linear-gradient(135deg,#a78bfa,#7c3aed);
+  border:1px solid rgba(221,214,254,.22);
+  border-radius:10px;
+  box-shadow:0 5px 18px rgba(124,58,237,.22);
+  transition:transform .2s,box-shadow .2s;
+}
+.watch-btn:hover{
+  transform:translateY(-2px);
+  box-shadow:0 8px 24px rgba(124,58,237,.35);
+}
+.info p{color:var(--muted)}
+.poster{
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 12px 32px rgba(0,0,0,.28);
+}
+.episode{
+  border-radius:9px;
+  padding:12px 8px;
+}
+.episode:hover{
+  background:#352052;
+  border-color:var(--accent-strong);
+  transform:translateY(-2px);
+}
+.player-box{
+  border:1px solid var(--border);
+  border-radius:14px;
+  box-shadow:0 12px 35px rgba(0,0,0,.28);
+}
+.notice{
+  background:rgba(167,139,250,.065);
+  border-left-color:var(--accent-strong);
+  border-radius:0 10px 10px 0;
+  color:#c5bdd8;
+}
+.coming{color:#c4b5fd}
+#adsterra-native-banner{margin-top:24px}
+button,input,select{font:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid var(--accent);
+  outline-offset:3px;
+}
+@media(max-width:600px){
+  header{padding:10px 12px}
+  main{padding:14px 12px}
+  .grid{gap:12px}
+  .card{border-radius:11px}
+  .card-title{padding:10px;font-size:13px}
+  .detail-top{gap:16px}
+  .player-box{border-radius:10px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
+}
+
+
+/* CINEMATIC HERO BANNER */
+.hero-banner {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  align-items: center;
+  min-height: 320px;
+  margin: 22px 0 30px;
+  padding: 34px;
+  overflow: hidden;
+  border: 1px solid rgba(167, 110, 255, .32);
+  border-radius: 22px;
+  background: linear-gradient(110deg, #171020, #08070d);
+  box-shadow: 0 14px 42px rgba(0, 0, 0, .32),
+              -10px 0 32px rgba(124, 58, 237, .22),
+              10px 0 32px rgba(124, 58, 237, .22);
+}
+.hero-banner .hero-backdrop {
+  position: absolute;
+  z-index: -2;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+  opacity: .62;
+}
+.hero-banner::after {
+  content: "";
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(8, 7, 13, .96) 0%, rgba(8, 7, 13, .78) 42%, rgba(8, 7, 13, .12) 100%),
+              linear-gradient(0deg, rgba(8, 7, 13, .72), transparent 65%);
+}
+.hero-content {
+  max-width: 590px;
+}
+.hero-kicker {
+  margin: 0 0 12px;
+  color: #c4a0ff;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+.hero-title {
+  margin: 0 0 12px;
+  color: #fff;
+  font-size: clamp(28px, 5vw, 48px);
+  line-height: 1.08;
+  font-weight: 900;
+  text-shadow: 0 3px 18px rgba(0, 0, 0, .4);
+}
+.hero-description {
+  max-width: 520px;
+  margin: 0 0 22px;
+  color: #d2cedc;
+  font-size: 14px;
+  line-height: 1.7;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.hero-action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  padding: 0 22px;
+  border: 0;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a970ff, #7440d9);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 7px 24px rgba(130, 75, 230, .3);
+  transition: transform .2s ease, filter .2s ease;
+}
+.hero-action:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+@media (max-width: 600px) {
+  .hero-banner {
+    min-height: 300px;
+    margin: 16px 0 24px;
+    padding: 24px 18px;
+    border-radius: 17px;
+  }
+  .hero-banner .hero-backdrop {
+    object-position: center;
+    opacity: .48;
+  }
+  .hero-banner::after {
+    background: linear-gradient(90deg, rgba(8, 7, 13, .82), rgba(8, 7, 13, .28)),
+                linear-gradient(0deg, rgba(8, 7, 13, .72), transparent);
+  }
+  .hero-banner {
+    box-shadow: 0 12px 30px rgba(0, 0, 0, .3),
+                -7px 0 24px rgba(124, 58, 237, .2),
+                7px 0 24px rgba(124, 58, 237, .2);
+  }
+  .hero-title {
+    font-size: 30px;
+  }
+  .hero-description {
+    font-size: 13px;
+    -webkit-line-clamp: 3;
+  }
+}
+
+
+/* FINAL MIDNIGHT VIOLET POLISH */
+:root{
+  color-scheme:dark;
+  --accent:#a78bfa;
+  --accent-strong:#c4b5fd;
+  --border:rgba(196,181,253,.16);
+  --muted:#aaa2bd;
+}
+body{
+  background:radial-gradient(ellipse at 50% -15%,rgba(109,40,217,.16),transparent 42%),#09080f;
+  color:#f7f4ff;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;
+}
+header{
+  background:rgba(12,10,19,.88);
+  border-bottom:1px solid rgba(196,181,253,.13);
+  backdrop-filter:blur(18px);
+  -webkit-backdrop-filter:blur(18px);
+}
+.logo{
+  color:#c4b5fd;
+  letter-spacing:-.7px;
+  text-shadow:0 0 24px rgba(167,139,250,.28);
+}
+.search input{
+  background:rgba(255,255,255,.055);
+  border:1px solid rgba(196,181,253,.14);
+  border-radius:14px;
+  min-height:44px;
+}
+.search input:focus{
+  border-color:#a78bfa;
+  box-shadow:0 0 0 3px rgba(139,92,246,.15);
+}
+main{padding:clamp(16px,3vw,30px)}
+.home-title{
+  display:flex;
+  align-items:center;
+  gap:12px;
+  font-size:clamp(24px,3vw,32px);
+  font-weight:850;
+  letter-spacing:-.8px;
+  margin:8px 0 20px;
+}
+.home-title::before{
+  content:"";
+  width:4px;
+  height:29px;
+  border-radius:8px;
+  background:linear-gradient(#c4b5fd,#7c3aed);
+  box-shadow:0 0 18px rgba(167,139,250,.4);
+}
+.grid{
+  grid-template-columns:repeat(auto-fill,minmax(min(145px,42vw),1fr));
+  gap:clamp(12px,1.8vw,20px);
+}
+.card{
+  background:linear-gradient(160deg,#191525,#100d18 85%);
+  border:1px solid rgba(196,181,253,.11);
+  border-radius:15px;
+  box-shadow:0 8px 24px rgba(0,0,0,.2);
+  overflow:hidden;
+}
+.card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(167,139,250,.55);
+  box-shadow:0 14px 32px rgba(0,0,0,.32),0 0 22px rgba(124,58,237,.12);
+}
+.card img{transition:transform .35s ease,filter .35s ease}
+.card:hover img{transform:scale(1.035);filter:saturate(1.08)}
+.card-title{
+  padding:12px;
+  color:#f1edff;
+  font-size:14px;
+  line-height:1.45;
+}
+button,input,select{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid #c4b5fd;
+  outline-offset:3px;
+}
+@media(max-width:600px){
+  header{gap:10px;padding:10px 12px}
+  .logo{font-size:19px}
+  main{padding:16px 12px}
+  .grid{gap:12px}
+  .card{border-radius:12px}
+  .card-title{padding:10px;font-size:13px}
+  .hero-banner{min-height:290px}
+}
+
 </style>
 </head>
 
@@ -294,6 +640,8 @@ main{padding:18px}
 <div class="home-title">
 Anime & Movies
 </div>
+
+<div id="heroBanner" class="hero-banner" style="display:none"></div>
 
 <div id="animeGrid" class="grid"></div>
 
@@ -880,9 +1228,11 @@ async function loadAnimeFromD1(){
     });
 
     renderAnime();
+    renderHero();
   }catch(error){
     console.error("D1 anime load error:",error);
     renderAnime();
+    renderHero();
   }
 }
 async function loadAnimeContentFromD1(id){
@@ -976,6 +1326,112 @@ async function loadAnimeContentFromD1(id){
 
 
 
+function renderHero(){
+  const banner = document.getElementById("heroBanner");
+  if(!banner) return;
+
+  if(renderHero.timer) clearInterval(renderHero.timer);
+  if(renderHero.fadeTimer) clearTimeout(renderHero.fadeTimer);
+
+  const slides = Object.keys(anime).filter(id =>
+    id !== "3" && anime[id] && anime[id].title && anime[id].poster
+  );
+
+  if(!slides.length){
+    banner.style.display = "none";
+    banner.replaceChildren();
+    return;
+  }
+
+  let currentIndex = Number.isInteger(renderHero.index)
+    ? renderHero.index % slides.length
+    : Math.floor(Math.random() * slides.length);
+
+  banner.style.display = "flex";
+  banner.style.overflow = "hidden";
+
+  function buildSlide(index){
+    const featuredId = slides[index];
+    const featured = anime[featuredId];
+
+    const slide = document.createElement("div");
+    slide.className = "hero-slide";
+    slide.style.cssText = "position:absolute;inset:0;display:flex;align-items:center;padding:34px;box-sizing:border-box;";
+
+    const backdrop = document.createElement("img");
+    backdrop.className = "hero-backdrop";
+    backdrop.src = featured.poster;
+    backdrop.alt = "";
+    backdrop.loading = "eager";
+    backdrop.decoding = "async";
+
+    const content = document.createElement("div");
+    content.className = "hero-content";
+
+    const kicker = document.createElement("p");
+    kicker.className = "hero-kicker";
+    kicker.textContent = "Featured Anime";
+
+    const title = document.createElement("h2");
+    title.className = "hero-title";
+    title.textContent = featured.title;
+
+    const description = document.createElement("p");
+    description.className = "hero-description";
+    description.textContent = featured.description ||
+      "Explore the anime collection on Anime Super.";
+
+    const action = document.createElement("button");
+    action.className = "hero-action";
+    action.type = "button";
+    action.textContent = "Explore Anime";
+    action.addEventListener("click", () => openDetails(featuredId));
+
+    content.append(kicker, title, description, action);
+    slide.append(backdrop, content);
+    return slide;
+  }
+
+  const first = buildSlide(currentIndex);
+  first.style.transform = "translateX(0)";
+  first.style.zIndex = "1";
+  banner.replaceChildren(first);
+  renderHero.index = currentIndex;
+
+  if(slides.length > 1){
+    renderHero.timer = setInterval(() => {
+      let nextIndex;
+      do {
+        nextIndex = Math.floor(Math.random() * slides.length);
+      } while(nextIndex === currentIndex && slides.length > 1);
+
+      const currentSlide = banner.querySelector(".hero-slide");
+      const next = buildSlide(nextIndex);
+      next.style.transform = "translateX(100%)";
+      next.style.zIndex = "2";
+      next.style.transition = "transform .65s ease-in-out";
+      banner.appendChild(next);
+
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          next.style.transform = "translateX(0)";
+          if(currentSlide){
+            currentSlide.style.transition = "transform .65s ease-in-out";
+            currentSlide.style.transform = "translateX(-100%)";
+          }
+        });
+      });
+
+      renderHero.fadeTimer = setTimeout(() => {
+        currentIndex = nextIndex;
+        renderHero.index = currentIndex;
+        next.style.zIndex = "1";
+        next.style.transition = "none";
+        banner.replaceChildren(next);
+      }, 700);
+    }, 5000);
+  }
+}
 function renderAnime(
 list=Object.keys(anime)
 ){
@@ -1955,6 +2411,11 @@ anime[id]
 );
 
 renderAnime(result);
+
+const heroBanner = document.getElementById("heroBanner");
+if(heroBanner){
+  heroBanner.style.display = query ? "none" : "flex";
+}
 
 });
 
