@@ -451,6 +451,30 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 
 
+/* SURPRISE ME — MIDNIGHT VIOLET */
+.surprise-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 14px 0 20px;
+}
+.surprise-btn {
+  min-height: 44px;
+  padding: 0 24px;
+  border: 1px solid rgba(196, 160, 255, .45);
+  border-radius: 999px;
+  background: linear-gradient(135deg, #a970ff, #7440d9);
+  color: #fff;
+  font-size: 14px;
+  font-weight: 800;
+  cursor: pointer;
+  box-shadow: 0 7px 24px rgba(130, 75, 230, .3);
+  transition: transform .2s ease, filter .2s ease;
+}
+.surprise-btn:hover {
+  transform: translateY(-2px);
+  filter: brightness(1.12);
+}
+
 /* CINEMATIC HERO BANNER */
 .hero-banner {
   position: relative;
@@ -745,6 +769,10 @@ font-size:12px;
 
 <div class="home-title">
 Anime & Movies
+</div>
+
+<div class="surprise-wrap">
+  <button id="surpriseMeBtn" class="surprise-btn" onclick="surpriseMe()">🎲 Surprise Me!</button>
 </div>
 
 <div id="heroBanner" class="hero-banner" style="display:none"></div>
@@ -2559,6 +2587,27 @@ openDetails(currentAnime);
 
 }
 
+
+/* ================================
+   SURPRISE ME
+================================ */
+function surpriseMe(){
+  const availableAnime = Object.keys(anime).filter(id => {
+    const item = anime[id];
+    return item &&
+      item.available === true &&
+      String(item.title || "").trim() !== "" &&
+      String(item.poster || "").trim() !== "";
+  });
+
+  if(!availableAnime.length){
+    alert("Abhi koi available anime nahi hai. Admin Panel mein anime ko available mark karo.");
+    return;
+  }
+
+  const randomId = availableAnime[Math.floor(Math.random() * availableAnime.length)];
+  openDetails(randomId);
+}
 
 /* ================================
    SEARCH
