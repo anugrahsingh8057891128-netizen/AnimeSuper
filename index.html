@@ -840,7 +840,7 @@ Anime & Movies
   </div>
   <button id="spinWheelBtn" class="spin-wheel-btn" onclick="spinAnimeWheel()">SPIN THE WHEEL</button>
   <button id="shuffleWheelBtn" class="spin-wheel-btn" onclick="shuffleAnimeWheel()">🔀 SHUFFLE NAMES</button>
-  <div class="spin-wheel-hint">Spin karo aur apna next anime discover karo!</div>
+  <div class="spin-wheel-hint">Spin the wheel and discover your next anime!</div>
 </div>
 
 <div id="heroBanner" class="hero-banner" style="display:none"></div>
@@ -2717,7 +2717,7 @@ function drawAnimeSpinWheel(){
   if(!canvas) return;
 
   const ctx = canvas.getContext("2d");
-  const items = getAvailableSpinAnime();
+  const items = getWheelAnimeItems();
   const cx = canvas.width / 2;
   const cy = canvas.height / 2;
   const radius = 238;
