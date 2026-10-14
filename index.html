@@ -839,6 +839,7 @@ Anime & Movies
     <canvas id="animeSpinWheel" width="500" height="500" aria-label="Random available anime spin wheel"></canvas>
   </div>
   <button id="spinWheelBtn" class="spin-wheel-btn" onclick="spinAnimeWheel()">SPIN THE WHEEL</button>
+  <button id="shuffleWheelBtn" class="spin-wheel-btn" onclick="shuffleAnimeWheel()">🔀 SHUFFLE NAMES</button>
   <div class="spin-wheel-hint">Spin karo aur apna next anime discover karo!</div>
 </div>
 
@@ -2662,6 +2663,7 @@ openDetails(currentAnime);
 ================================ */
 let spinWheelRotation = 0;
 let spinWheelBusy = false;
+let spinWheelOrder = [];
 
 function getAvailableSpinAnime(){
   return Object.keys(anime).filter(id => {
@@ -2671,6 +2673,43 @@ function getAvailableSpinAnime(){
       String(item.title || "").trim() !== "" &&
       String(item.poster || "").trim() !== "";
   }).map(id => ({id, title:String(anime[id].title).trim()}));
+}
+
+function getWheelAnimeItems(){
+  const available = getAvailableSpinAnime();
+  if(!spinWheelOrder.length) return available;
+
+  const byId = new Map(available.map(item => [item.id, item]));
+  const ordered = spinWheelOrder.map(id => byId.get(id)).filter(Boolean);
+  const included = new Set(ordered.map(item => item.id));
+  return ordered.concat(available.filter(item => !included.has(item.id)));
+}
+
+function shuffleAnimeWheel(){
+  if(spinWheelBusy) return;
+
+  const items = getWheelAnimeItems();
+  if(!items.length){
+    alert("Abhi koi available anime nahi hai. Admin Panel mein anime ko available mark karo.");
+    drawAnimeSpinWheel();
+    return;
+  }
+
+  for(let i = items.length - 1; i > 0; i--){
+    const j = Math.floor(Math.random() * (i + 1));
+    [items[i], items[j]] = [items[j], items[i]];
+  }
+
+  spinWheelOrder = items.map(item => item.id);
+  drawAnimeSpinWheel();
+
+  const button = document.getElementById("shuffleWheelBtn");
+  if(button){
+    button.textContent = "✓ NAMES SHUFFLED";
+    setTimeout(() => {
+      button.textContent = "🔀 SHUFFLE NAMES";
+    }, 1600);
+  }
 }
 
 function drawAnimeSpinWheel(){
@@ -2749,7 +2788,7 @@ function drawAnimeSpinWheel(){
 function spinAnimeWheel(){
   if(spinWheelBusy) return;
 
-  const items=getAvailableSpinAnime();
+  const items=getWheelAnimeItems();
   const canvas=document.getElementById("animeSpinWheel");
   const button=document.getElementById("spinWheelBtn");
 
