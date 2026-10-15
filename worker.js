@@ -151,8 +151,7 @@ export default {
 
 
     // PUBLIC ANIME API
-    "if (&&url.pathname === "/api/public/anime" && request.method === "GET") {
-      try {
+    if (url.pathname === "/api/public/anime" && request.method === "GET") {      try {
         const result = await env.DB.prepare(
           `SELECT id, title, poster, description, movie, available
            FROM anime
