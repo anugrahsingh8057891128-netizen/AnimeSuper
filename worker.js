@@ -73,50 +73,43 @@ export default {
         }
       );
     }
-    // =====================================================
-    // ANILIST POPULAR LIST
+   // =====================================================
+    // JIKAN POPULAR LIST (MyAnimeList)
     // =====================================================
 
     if (url.pathname === "/api/anime/popular" && request.method === "GET") {
       try {
-        const query = `
-          query {
-            Page(page: 1, perPage: 20) {
-              media(sort: POPULARITY_DESC, type: ANIME) {
-                id
-                title { romaji english }
-                coverImage { large }
-                episodes
-                status
-                genres
-              }
-            }
-          }
-        `;
+        const jikanRes = await fetch("https://api.jikan.moe/v4/top/anime?limit=20");
+        const data = await jikanRes.json();
 
-        const anilistRes = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query })
-        });
-
-        const data = await anilistRes.json();
-
-        if (!data || !data.data || !data.data.Page) {
-          return Response.json({ success: false, error: "AniList error", raw: data }, { status: 500 });
+        if (!data || !data.data) {
+          return Response.json({ success: false, error: "Jikan error", raw: data }, { status: 500 });
         }
 
-        return Response.json({ success: true, anime: data.data.Page.media });
+        const anime = data.data.map(item => ({
+          id: item.mal_id,
+          title: {
+            english: item.title_english || item.title,
+            romaji: item.title
+          },
+          coverImage: { large: item.images.jpg.large_image_url },
+          episodes: item.episodes,
+          status: item.status,
+          genres: item.genres ? item.genres.map(g => g.name) : []
+        }));
+
+        return Response.json({ success: true, anime });
       } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
     }
-
     // =====================================================
     // JUSTANIME PROXY API
     // =====================================================
 
-    if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET") {
+    ===============================
+
+if (url.pathname.startsWith("/	api/justanime/anime/") && request.method === "GET") {
       try {
         const id = url.pathname.split("/").pop();
         if (!id || isNaN(id)) {
