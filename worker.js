@@ -24,7 +24,7 @@ export default {
         const body = await request.json();
 
         if (
-          !env.ADMIN_PASSWORD ||:          ($body.password !== env.ADMIN_PASSWORD
+          !env.ADMIN_PASSWORD ||          ($body.password !== env.ADMIN_PASSWORD
         ) {
           return Response.json(
             {
