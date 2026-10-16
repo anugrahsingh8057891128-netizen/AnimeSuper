@@ -73,7 +73,7 @@ export default {
         }
       );
     }
-   // =====================================================
+    // =====================================================
     // JIKAN POPULAR LIST (MyAnimeList)
     // =====================================================
 
@@ -107,9 +107,7 @@ export default {
     // JUSTANIME PROXY API
     // =====================================================
 
-    ===============================
-
-if (url.pathname.startsWith("/	api/justanime/anime/") && request.method === "GET") {
+if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET") {
       try {
         const id = url.pathname.split("/").pop();
         if (!id || isNaN(id)) {
