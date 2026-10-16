@@ -74,6 +74,45 @@ export default {
       );
     }
     // =====================================================
+    // ANILIST POPULAR LIST
+    // =====================================================
+
+    if (url.pathname === "/api/anime/popular" && request.method === "GET") {
+      try {
+        const query = `
+          query {
+            Page(page: 1, perPage: 20) {
+              media(sort: POPULARITY_DESC, type: ANIME) {
+                id
+                title { romaji english }
+                coverImage { large }
+                episodes
+                status
+                genres
+              }
+            }
+          }
+        `;
+
+        const anilistRes = await fetch("https://graphql.anilist.co", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query })
+        });
+
+        const data = await anilistRes.json();
+
+        if (!data || !data.data || !data.data.Page) {
+          return Response.json({ success: false, error: "AniList error", raw: data }, { status: 500 });
+        }
+
+        return Response.json({ success: true, anime: data.data.Page.media });
+      } catch (error) {
+        return Response.json({ success: false, error: error.message }, { status: 500 });
+      }
+    }
+
+    // =====================================================
     // JUSTANIME PROXY API
     // =====================================================
 
