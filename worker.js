@@ -151,7 +151,8 @@ export default {
           }, { status: 500 });
         }
         
-        return Response.json({ success: true, results: data.data.Page.media });      } catch (error) {
+        return Response.json({ success: true, results: data.data.Page.media });   
+   } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
     }
