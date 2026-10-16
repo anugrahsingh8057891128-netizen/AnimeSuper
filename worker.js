@@ -24,8 +24,7 @@ export default {
         const body = await request.json();
 
         if (
-          !env.ADMIN_PASSWORD ||
-          body.password !== env.ADMIN_PASSWORD
+          !env.ADMIN_PASSWORD ||:          ($body.password !== env.ADMIN_PASSWORD
         ) {
           return Response.json(
             {
@@ -74,9 +73,11 @@ export default {
         }
       );
     }
+
     // =====================================================
     // ANILIST PROXY API
     // =====================================================
+
     if (url.pathname === "/api/anilist/search" && request.method === "GET") {
       try {
         const search = url.searchParams.get("q") || "";
@@ -106,6 +107,8 @@ export default {
           body: JSON.stringify({ query, variables: { search } })
         });
 
+        const data = await anilistRes.json();
+        return Response.json({ success: true, results: data.data.Page.media });
       } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
@@ -141,22 +144,11 @@ export default {
         });
 
         const data = await anilistRes.json();
-        
-        // Debug: AniList ka raw response dekho
-        if (!data || !data.data || !data.data.Page) {
-          return Response.json({ 
-            success: false, 
-            error: "AniList response invalid",
-            anilistResponse: data 
-          }, { status: 500 });
-        }
-        
-        return Response.json({ success: true, results: data.data.Page.media });   
-   } catch (error) {
+        return Response.json({ success: true, anime: data.data.Media });
+      } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
     }
-
 
     // PUBLIC ANIME API
     if (url.pathname === "/api/public/anime" && request.method === "GET") {      try {
