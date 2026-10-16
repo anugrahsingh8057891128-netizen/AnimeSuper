@@ -108,8 +108,17 @@ export default {
         });
 
         const data = await anilistRes.json();
-        return Response.json({ success: true, results: data.data.Page.media });
-      } catch (error) {
+        
+        // Debug: AniList ka raw response dekho
+        if (!data || !data.data || !data.data.Page) {
+          return Response.json({ 
+            success: false, 
+            error: "AniList response invalid",
+            anilistResponse: data 
+          }, { status: 500 });
+        }
+        
+        return Response.json({ success: true, results: data.data.Page.media });      } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
     }
