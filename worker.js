@@ -73,92 +73,27 @@ export default {
         }
       );
     }
-
     // =====================================================
-    // ANILIST PROXY API
+    // JUSTANIME PROXY API
     // =====================================================
 
-    if (url.pathname === "/api/anilist/search" && request.method === "GET") {
+    if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET") {
       try {
-        const search = url.searchParams.get("q") || "";
-        if (!search) {
-          return Response.json({ success: false, error: "Query required" }, { status: 400 });
-        }
-
-        const query = `
-          query ($search: String) {
-            Page(page: 1, perPage: 10) {
-              media(search: $search, type: ANIME) {
-                id
-                title { romaji english }
-                coverImage { large }
-                episodes
-                status
-                genres
-                description
-              }
-            }
-          }
-        `;
-
-        const anilistRes = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, variables: { search } })
-        });
-
-        const data = await anilistRes.json();
-        
-        // Debug: AniList ka raw response dekho
-        if (!data || !data.data || !data.data.Page) {
-          return Response.json({ 
-            success: false, 
-            error: "AniList response invalid",
-            anilistResponse: data 
-          }, { status: 500 });
-        }
-        
-        return Response.json({ success: true, results: data.data.Page.media });      } catch (error) {
-        return Response.json({ success: false, error: error.message }, { status: 500 });
-      }
-    }
-
-    if (url.pathname.startsWith("/api/anilist/anime/") && request.method === "GET") {
-      try {
-        const id = Number(url.pathname.split("/").pop());
-        if (!id) {
+        const id = url.pathname.split("/").pop();
+        if (!id || isNaN(id)) {
           return Response.json({ success: false, error: "Invalid ID" }, { status: 400 });
         }
 
-        const query = `
-          query ($id: Int) {
-            Media(id: $id, type: ANIME) {
-              id
-              title { romaji english }
-              coverImage { large }
-              bannerImage
-              episodes
-              status
-              genres
-              description
-              seasonYear
-            }
-          }
-        `;
+        const justanimeRes = await fetch(
+          `https://toys-brilliant-disturbed-jewish.trycloudflare.com/api/anime/${id}`
+        );
 
-        const anilistRes = await fetch("https://graphql.anilist.co", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, variables: { id } })
-        });
-
-        const data = await anilistRes.json();
-        return Response.json({ success: true, anime: data.data.Media });
+        const data = await justanimeRes.json();
+        return Response.json({ success: true, anime: data.data });
       } catch (error) {
         return Response.json({ success: false, error: error.message }, { status: 500 });
       }
     }
-
     // PUBLIC ANIME API
     if (url.pathname === "/api/public/anime" && request.method === "GET") {      try {
         const result = await env.DB.prepare(
