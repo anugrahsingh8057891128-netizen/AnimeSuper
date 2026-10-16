@@ -113,9 +113,8 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
         if (!id || isNaN(id)) {
           return Response.json({ success: false, error: "Invalid ID" }, { status: 400 });
         }
-
         const justanimeRes = await fetch(
-          `https://toys-brilliant-disturbed-jewish.trycloudflare.com/api/anime/${id}`
+          `https://absolutely-repairs-depend-scanning.trycloudflare.com/api/anime/${id}`
         );
 
         const data = await justanimeRes.json();
