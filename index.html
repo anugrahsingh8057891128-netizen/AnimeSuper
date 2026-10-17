@@ -205,6 +205,15 @@ main{padding:18px}
   transition:background .2s,border-color .2s,transform .2s,box-shadow .2s;
 }
 
+.episode-meta{
+  display:block;
+  width:100%;
+  font-size:10px;
+  line-height:1.5;
+  color:#d8c9ff;
+  overflow-wrap:anywhere;
+}
+
 .episode::before{
   content:"EPISODE";
   font-size:10px;
@@ -1367,9 +1376,11 @@ let currentSeason=1;
 let currentQuality=null;
 let currentServer=null;
 let currentAudio=null;
+let currentEpisodeLanguage=null;
 let episodeLanguages={};
 let episodeQualities={};
 let episodeServers={};
+let episodeLanguageData={};
 
 const video=
 document.getElementById("video");
@@ -1455,54 +1466,49 @@ async function loadAnimeContentFromD1(id){
     episodeLanguages[id]=[];
     episodeQualities[id]=new Set();
     episodeServers[id]={};
+    episodeLanguageData[id]={};
 
     if(episodeData.success){
       episodeData.episodes.forEach(ep=>{
         const season=String(ep.season || 1);
         const episode=String(ep.episode);
+        const language=String(ep.language || "Hindi");
 
         if(!seasons[id][season]){
-          seasons[id][season]={
-            name:"Season "+season,
-            episodes:[]
-          };
+          seasons[id][season]={name:"Season "+season,episodes:[]};
+        }
+        if(!seasons[id][season].episodes.includes(Number(ep.episode))){
+          seasons[id][season].episodes.push(Number(ep.episode));
         }
 
-        seasons[id][season].episodes.push(Number(ep.episode));
-
-        if(ep.language){
-          if(!episodeLanguages[id]) episodeLanguages[id]=[];
-          if(!episodeLanguages[id].includes(ep.language)){
-            episodeLanguages[id].push(ep.language);
-          }
+        if(!episodeLanguages[id].includes(language)){
+          episodeLanguages[id].push(language);
         }
 
-        if(!episodeQualities[id]) episodeQualities[id]=new Set();
         if(ep.url_360 || ep.url_360_server2) episodeQualities[id].add("360p");
         if(ep.url_720 || ep.url_720_server2) episodeQualities[id].add("720p");
         if(ep.url_1080 || ep.url_1080_server2) episodeQualities[id].add("1080p");
 
-        videos[id][episode]={};
-        if(ep.url_360) videos[id][episode]["360p"]=ep.url_360;
-        if(ep.url_720) videos[id][episode]["720p"]=ep.url_720;
-        if(ep.url_1080) videos[id][episode]["1080p"]=ep.url_1080;
+        if(!episodeLanguageData[id][season]) episodeLanguageData[id][season]={};
+        if(!episodeLanguageData[id][season][episode]) episodeLanguageData[id][season][episode]={};
 
-        episodeServers[id][episode]={};
-
-        episodeServers[id][episode]["360p"]={
-          server1:ep.url_360 || "",
-          server2:ep.url_360_server2 || ""
+        const languageData={
+          "360p":{server1:ep.url_360 || "",server2:ep.url_360_server2 || ""},
+          "720p":{server1:ep.url_720 || "",server2:ep.url_720_server2 || ""},
+          "1080p":{server1:ep.url_1080 || "",server2:ep.url_1080_server2 || ""}
         };
+        episodeLanguageData[id][season][episode][language]=languageData;
 
-        episodeServers[id][episode]["720p"]={
-          server1:ep.url_720 || "",
-          server2:ep.url_720_server2 || ""
-        };
+        if(!videos[id][episode]) videos[id][episode]={};
+        if(!episodeServers[id][episode]) episodeServers[id][episode]={};
 
-        episodeServers[id][episode]["1080p"]={
-          server1:ep.url_1080 || "",
-          server2:ep.url_1080_server2 || ""
-        };
+        ["360p","720p","1080p"].forEach(q=>{
+          const row=languageData[q];
+          if(row.server1 && !videos[id][episode][q]) videos[id][episode][q]=row.server1;
+          if(!episodeServers[id][episode][q]) episodeServers[id][episode][q]={server1:"",server2:""};
+          if(row.server1 && !episodeServers[id][episode][q].server1) episodeServers[id][episode][q].server1=row.server1;
+          if(row.server2 && !episodeServers[id][episode][q].server2) episodeServers[id][episode][q].server2=row.server2;
+        });
       });
     }
 
@@ -1691,6 +1697,9 @@ async function openDetails(id){
 stopPlayers();
 
 currentAnime=id;
+currentSeason=1;
+currentEpisode=null;
+currentEpisodeLanguage=null;
 
 await loadAnimeContentFromD1(id);
 
@@ -1893,32 +1902,6 @@ seasons[currentAnime]
 container.innerHTML=
 "<h2>Episodes</h2>";
 
-const audioList=
-episodeLanguages[currentAnime] || [];
-
-const qualityList=
-episodeQualities[currentAnime]
-? Array.from(episodeQualities[currentAnime])
-.sort((a,b)=>parseInt(b)-parseInt(a))
-: [];
-
-if(audioList.length || qualityList.length){
-
-const notice=
-document.createElement("div");
-
-notice.className="notice";
-
-notice.innerHTML=
-"Audio: "+
-audioList.join(" • ")+
-"<br><br>"+
-"Quality: "+
-qualityList.join(" • ");
-
-container.appendChild(notice);
-
-}
 
 const list=
 document.createElement("div");
@@ -1934,6 +1917,24 @@ button.className="episode"+(Number(ep)===Number(currentEpisode)?" active":"");
 
 button.textContent=
 "EP "+ep;
+
+const episodeData=
+episodeLanguageData[currentAnime]?.[String(currentSeason || 1)]?.[String(ep)] || {};
+
+const episodeAudio=Object.keys(episodeData);
+const episodeQuality=["1080p","720p","360p"].filter(q=>
+episodeAudio.some(lang=>episodeData[lang]?.[q]?.server1 || episodeData[lang]?.[q]?.server2)
+);
+
+if(episodeAudio.length || episodeQuality.length){
+const meta=document.createElement("small");
+meta.className="episode-meta";
+meta.textContent=
+(episodeAudio.length ? "Audio: "+episodeAudio.join(" • ") : "")+
+(episodeAudio.length && episodeQuality.length ? " | " : "")+
+(episodeQuality.length ? "Quality: "+episodeQuality.join(" • ") : "");
+button.appendChild(meta);
+}
 
 button.onclick=()=>{
 
@@ -1967,32 +1968,6 @@ Object.keys(videos[currentAnime]);
 container.innerHTML=
 "<h2>Episodes</h2>";
 
-const audioList=
-episodeLanguages[currentAnime] || [];
-
-const qualityList=
-episodeQualities[currentAnime]
-? Array.from(episodeQualities[currentAnime])
-.sort((a,b)=>parseInt(b)-parseInt(a))
-: [];
-
-if(audioList.length || qualityList.length){
-
-const notice=
-document.createElement("div");
-
-notice.className="notice";
-
-notice.innerHTML=
-"Audio: "+
-audioList.join(" • ")+
-"<br><br>"+
-"Quality: "+
-qualityList.join(" • ");
-
-container.appendChild(notice);
-
-}
 
 const list=
 document.createElement("div");
@@ -2008,6 +1983,24 @@ button.className="episode"+(Number(ep)===Number(currentEpisode)?" active":"");
 
 button.textContent=
 "EP "+ep;
+
+const episodeData=
+episodeLanguageData[currentAnime]?.["1"]?.[String(ep)] || {};
+
+const episodeAudio=Object.keys(episodeData);
+const episodeQuality=["1080p","720p","360p"].filter(q=>
+episodeAudio.some(lang=>episodeData[lang]?.[q]?.server1 || episodeData[lang]?.[q]?.server2)
+);
+
+if(episodeAudio.length || episodeQuality.length){
+const meta=document.createElement("small");
+meta.className="episode-meta";
+meta.textContent=
+(episodeAudio.length ? "Audio: "+episodeAudio.join(" • ") : "")+
+(episodeAudio.length && episodeQuality.length ? " | " : "")+
+(episodeQuality.length ? "Quality: "+episodeQuality.join(" • ") : "");
+button.appendChild(meta);
+}
 
 button.onclick=()=>{
 
@@ -2031,36 +2024,64 @@ container.appendChild(list);
    EPISODE PLAYER
 ================================ */
 
-function openEpisodePlayer(){
-
-showPage("playerPage");
-
-document.getElementById("playerTitle")
-.textContent=
-anime[currentAnime].title+
-" - Episode "+
-currentEpisode;
-
-document.getElementById("playerNotice")
-.textContent="";
-
-audioSelect.style.display="none";
-audioLabel.style.display="none";
-
-qualitySelect.style.display="inline-block";
-
-currentServer=null;
-
-setupDirectQualities();
-
-setupDirectServers();
-
-loadDirectVideo();
-
-updateEpisodeNavigation();
-
+function getCurrentEpisodeLanguageOptions(){
+return episodeLanguageData[currentAnime]?.[String(currentSeason || 1)]?.[String(currentEpisode)] || {};
 }
 
+function getCurrentEpisodeServerData(){
+const languageOptions=getCurrentEpisodeLanguageOptions();
+if(Object.keys(languageOptions).length){
+if(!currentEpisodeLanguage || !languageOptions[currentEpisodeLanguage]){
+currentEpisodeLanguage=Object.keys(languageOptions)[0];
+}
+return languageOptions[currentEpisodeLanguage];
+}
+return null;
+}
+
+function openEpisodePlayer(){
+showPage("playerPage");
+document.getElementById("playerTitle").textContent=anime[currentAnime].title+" - Episode "+currentEpisode;
+document.getElementById("playerNotice").textContent="";
+
+const languageOptions=getCurrentEpisodeLanguageOptions();
+const languages=Object.keys(languageOptions);
+audioSelect.innerHTML="";
+
+if(languages.length){
+if(!currentEpisodeLanguage || !languageOptions[currentEpisodeLanguage]){
+currentEpisodeLanguage=languages[0];
+}
+languages.forEach(language=>{
+const option=document.createElement("option");
+option.value=language;
+option.textContent=language;
+audioSelect.appendChild(option);
+});
+audioSelect.value=currentEpisodeLanguage;
+audioSelect.style.display="inline-block";
+audioLabel.style.display="inline-block";
+audioSelect.onchange=()=>{
+currentEpisodeLanguage=audioSelect.value;
+currentServer=null;
+setupDirectQualities();
+setupDirectServers();
+loadDirectVideo();
+};
+}else{
+currentEpisodeLanguage=null;
+audioSelect.style.display="none";
+audioLabel.style.display="none";
+audioSelect.onchange=null;
+}
+
+qualitySelect.style.display="inline-block";
+currentServer=null;
+setupDirectQualities();
+setupDirectServers();
+loadDirectVideo();
+updateEpisodeNavigation();
+}
 
 function updateEpisodeNavigation(){
 const previous=document.getElementById("previousEpisodeBtn");
@@ -2125,187 +2146,98 @@ openEpisodePlayer();
 ================================ */
 
 function setupDirectServers(){
-
-const serverSelect=
-document.getElementById("serverSelect");
-
+const serverSelect=document.getElementById("serverSelect");
 serverSelect.innerHTML="";
-
-const data=
-episodeServers[currentAnime]
-?.[currentEpisode]
-?.[currentQuality];
-
+const data=getCurrentEpisodeServerData()?.[currentQuality];
 if(!data)return;
 
 const servers=[];
-
-if(data.server1){
-servers.push({
-id:"server1",
-name:"Server 1"
-});
-}
-
-if(data.server2){
-servers.push({
-id:"server2",
-name:"Server 2"
-});
-}
-
+if(data.server1) servers.push({id:"server1",name:"Server 1 Vidmoly"});
+if(data.server2) servers.push({id:"server2",name:"Server 2 Abyss"});
 if(!servers.length)return;
 
-if(
-!currentServer ||
-!data[currentServer]
-){
+if(!currentServer || !data[currentServer]){
 currentServer=servers[0].id;
 }
-
-qualitySelect.style.display = currentServer === "server2" ? "none" : "inline-block";
+qualitySelect.style.display="inline-block";
 
 servers.forEach(server=>{
-
-const button=
-document.createElement("button");
-
+const button=document.createElement("button");
 button.type="button";
 button.className="player-select";
-
-button.textContent=
-server.name;
-
-if(server.id===currentServer){
-button.classList.add("active");
-}
-
+button.textContent=server.name;
+if(server.id===currentServer) button.classList.add("active");
 button.onclick=()=>{
-
 currentServer=server.id;
-
 setupDirectServers();
-
 loadDirectVideo();
-
 };
-
 serverSelect.appendChild(button);
-
 });
-
 }
-
 
 /* ================================
    DIRECT QUALITY
 ================================ */
 
 function setupDirectQualities(){
-
 qualitySelect.innerHTML="";
-
-const data=
-episodeServers[currentAnime]
-?.[currentEpisode];
-
+const data=getCurrentEpisodeServerData();
 if(!data)return;
 
 const qualities=["1080p","720p","360p"].filter(q=>
-data[q] &&
-(data[q].server1 || data[q].server2)
+data[q] && (data[q].server1 || data[q].server2)
 );
+if(!qualities.length)return;
 
-currentQuality=
-qualities[0];
-
+currentQuality=qualities[0];
 qualities.forEach(q=>{
-
-const option=
-document.createElement("option");
-
+const option=document.createElement("option");
 option.value=q;
 option.textContent=q;
-
 qualitySelect.appendChild(option);
-
 });
-
-qualitySelect.value=
-currentQuality;
-
+qualitySelect.value=currentQuality;
 qualitySelect.onchange=()=>{
-
-currentQuality=
-qualitySelect.value;
-
+currentQuality=qualitySelect.value;
 currentServer=null;
-
 setupDirectServers();
-
 loadDirectVideo();
-
 };
-
 }
-
 
 /* ================================
    DIRECT VIDEO
 ================================ */
 
 function loadDirectVideo(){
-
-const serverData=
-episodeServers[currentAnime]
-?.[currentEpisode]
-?.[currentQuality];
-
+const serverData=getCurrentEpisodeServerData()?.[currentQuality];
 if(!serverData)return;
 
-if(
-!currentServer ||
-!serverData[currentServer]
-){
-currentServer=
-serverData.server1
-? "server1"
-: "server2";
+if(!currentServer || !serverData[currentServer]){
+currentServer=serverData.server1 ? "server1" : "server2";
 }
-
-const url=
-serverData[currentServer];
-
+const url=serverData[currentServer];
 if(!url)return;
 
 video.pause();
 video.removeAttribute("src");
 video.load();
-
 embedPlayer.src="";
 embedPlayer.style.display="none";
 video.style.display="none";
 
 if(url.includes("vidmoly.org/embed-") || url.includes("abyss.to") || url.includes("player.abyssplayer.com")){
-
 embedPlayer.src=url;
 embedPlayer.style.display="block";
-
 }else{
-
 video.style.display="block";
-
 setTimeout(()=>{
-
 video.src=url;
 video.load();
-
 },80);
-
 }
-
 }
-
 
 /* ================================
    WATCH MOVIE
