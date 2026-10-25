@@ -1385,6 +1385,8 @@ placeholder="Episode Number"
 <option value="Hindi">Hindi Dub</option>
 <option value="English">English Dub</option>
 <option value="Japanese">Japanese Dub</option>
+<option value="Japanese + English">Japanese + English</option>
+<option value="Hindi + English + Japanese">Hindi + English + Japanese</option>
 </select>
 
 <input
@@ -1452,6 +1454,8 @@ Select an anime to see episodes.
     <option value="Japanese">Japanese Dub</option>
     <option value="English">English Dub</option>
     <option value="Hindi">Hindi Dub</option>
+    <option value="Japanese + English">Japanese + English</option>
+    <option value="Hindi + English + Japanese">Hindi + English + Japanese</option>
   </select>
 
   <input type="text" id="movieUrl360" placeholder="Vidmoly 360p URL">
