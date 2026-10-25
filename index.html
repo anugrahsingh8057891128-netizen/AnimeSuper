@@ -460,91 +460,6 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 }
 
 
-/* SURPRISE SPIN WHEEL — MIDNIGHT VIOLET */
-.surprise-wrap {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:14px;
-  margin:18px auto 26px;
-  padding:18px 12px;
-  border:1px solid rgba(169,112,255,.2);
-  border-radius:24px;
-  background:radial-gradient(ellipse at top,rgba(116,64,217,.16),transparent 72%);
-}
-.spin-wheel-heading {
-  color:#e8d8ff;
-  font-size:clamp(17px,4vw,22px);
-  font-weight:900;
-  letter-spacing:1.5px;
-  text-align:center;
-  text-shadow:0 0 18px rgba(169,112,255,.5);
-}
-.spin-wheel-stage {
-  position:relative;
-  width:min(84vw,340px);
-  aspect-ratio:1;
-  margin-top:8px;
-  filter:drop-shadow(0 0 18px rgba(137,78,255,.25));
-}
-#animeSpinWheel {
-  display:block;
-  width:100%;
-  height:100%;
-  border-radius:50%;
-  transform:rotate(0deg);
-  transition:transform 4.8s cubic-bezier(.12,.72,.12,1);
-}
-.spin-wheel-pointer {
-  position:absolute;
-  z-index:2;
-  top:-8px;
-  left:50%;
-  transform:translateX(-50%);
-  width:0;
-  height:0;
-  border-left:15px solid transparent;
-  border-right:15px solid transparent;
-  border-top:0;
-  border-bottom:29px solid #fff;
-  filter:drop-shadow(0 2px 5px #a970ff);
-}
-.spin-wheel-btn {
-  min-height:48px;
-  min-width:190px;
-  padding:0 28px;
-  border:1px solid rgba(224,203,255,.65);
-  border-radius:999px;
-  background:linear-gradient(135deg,#b783ff,#743ce0 60%,#5427b8);
-  color:#fff;
-  font-size:14px;
-  font-weight:900;
-  letter-spacing:1px;
-  cursor:pointer;
-  box-shadow:0 7px 25px rgba(130,75,230,.35),inset 0 1px rgba(255,255,255,.25);
-  transition:filter .2s ease,transform .2s ease;
-}
-.spin-wheel-btn:hover:not(:disabled) {
-  filter:brightness(1.12);
-  transform:translateY(-2px);
-}
-.spin-wheel-btn:disabled {
-  opacity:.75;
-  cursor:wait;
-}
-.spin-wheel-hint {
-  color:#bcb0d6;
-  font-size:12px;
-  text-align:center;
-}
-@media(max-width:400px) {
-  .surprise-wrap {padding:14px 8px}
-  .spin-wheel-stage {width:min(82vw,300px)}
-}
-@media(prefers-reduced-motion:reduce) {
-  #animeSpinWheel {transition-duration:1ms}
-}
-
 /* CINEMATIC HERO BANNER */
 .hero-banner {
   position: relative;
@@ -839,17 +754,6 @@ font-size:12px;
 
 <div class="home-title">
 Anime & Movies
-</div>
-
-<div class="surprise-wrap">
-  <div class="spin-wheel-heading">🎲 SURPRISE ME 🎲</div>
-  <div class="spin-wheel-stage">
-    <div class="spin-wheel-pointer"></div>
-    <canvas id="animeSpinWheel" width="500" height="500" aria-label="Random available anime spin wheel"></canvas>
-  </div>
-  <button id="spinWheelBtn" class="spin-wheel-btn" onclick="spinAnimeWheel()">SPIN THE WHEEL</button>
-  <button id="shuffleWheelBtn" class="spin-wheel-btn" onclick="shuffleAnimeWheel()">🔀 SHUFFLE NAMES</button>
-  <div class="spin-wheel-hint">Spin the wheel and discover your next anime!</div>
 </div>
 
 <div id="heroBanner" class="hero-banner" style="display:none"></div>
@@ -1448,12 +1352,10 @@ async function loadAnimeFromD1(){
 
     renderAnime();
     renderHero();
-    drawAnimeSpinWheel();
   }catch(error){
     console.error("D1 anime load error:",error);
     renderAnime();
     renderHero();
-    drawAnimeSpinWheel();
   }
 }
 async function loadAnimeContentFromD1(id){
@@ -2591,171 +2493,6 @@ openDetails(currentAnime);
 
 
 /* ================================
-   SURPRISE SPIN WHEEL
-================================ */
-let spinWheelRotation = 0;
-let spinWheelBusy = false;
-let spinWheelOrder = [];
-
-function getAvailableSpinAnime(){
-  return Object.keys(anime).filter(id => {
-    const item = anime[id];
-    return item &&
-      item.available === true &&
-      String(item.title || "").trim() !== "" &&
-      String(item.poster || "").trim() !== "";
-  }).map(id => ({id, title:String(anime[id].title).trim()}));
-}
-
-function getWheelAnimeItems(){
-  const available = getAvailableSpinAnime();
-  if(!spinWheelOrder.length) return available;
-
-  const byId = new Map(available.map(item => [item.id, item]));
-  const ordered = spinWheelOrder.map(id => byId.get(id)).filter(Boolean);
-  const included = new Set(ordered.map(item => item.id));
-  return ordered.concat(available.filter(item => !included.has(item.id)));
-}
-
-function shuffleAnimeWheel(){
-  if(spinWheelBusy) return;
-
-  const items = getWheelAnimeItems();
-  if(!items.length){
-    alert("Abhi koi available anime nahi hai. Admin Panel mein anime ko available mark karo.");
-    drawAnimeSpinWheel();
-    return;
-  }
-
-  for(let i = items.length - 1; i > 0; i--){
-    const j = Math.floor(Math.random() * (i + 1));
-    [items[i], items[j]] = [items[j], items[i]];
-  }
-
-  spinWheelOrder = items.map(item => item.id);
-  drawAnimeSpinWheel();
-
-  const button = document.getElementById("shuffleWheelBtn");
-  if(button){
-    button.textContent = "✓ NAMES SHUFFLED";
-    setTimeout(() => {
-      button.textContent = "🔀 SHUFFLE NAMES";
-    }, 1600);
-  }
-}
-
-function drawAnimeSpinWheel(){
-  const canvas = document.getElementById("animeSpinWheel");
-  if(!canvas) return;
-
-  const ctx = canvas.getContext("2d");
-  const items = getWheelAnimeItems();
-  const cx = canvas.width / 2;
-  const cy = canvas.height / 2;
-  const radius = 238;
-  const colors = ["#7138c9","#8d45d9","#4c3bb5","#b13eaa",
-                  "#5530a0","#9a50d8","#6338bf","#873fba"];
-
-  ctx.clearRect(0,0,canvas.width,canvas.height);
-
-  if(!items.length){
-    ctx.beginPath();
-    ctx.arc(cx,cy,radius,0,Math.PI*2);
-    ctx.fillStyle="#352052";
-    ctx.fill();
-    ctx.fillStyle="#ffffff";
-    ctx.font="bold 22px sans-serif";
-    ctx.textAlign="center";
-    ctx.fillText("NO AVAILABLE ANIME",cx,cy);
-    return;
-  }
-
-  const step = Math.PI * 2 / items.length;
-  items.forEach((item,i)=>{
-    const start = -Math.PI/2 + i*step;
-    const end = start + step;
-    const mid = start + step/2;
-
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,radius,start,end);
-    ctx.closePath();
-    ctx.fillStyle=colors[i%colors.length];
-    ctx.fill();
-    ctx.strokeStyle="rgba(255,255,255,.8)";
-    ctx.lineWidth=2;
-    ctx.stroke();
-
-    ctx.save();
-    ctx.translate(cx,cy);
-    ctx.rotate(mid);
-    ctx.translate(radius*.66,0);
-    if(mid > Math.PI/2 && mid < Math.PI*1.5) ctx.rotate(Math.PI);
-    ctx.fillStyle="#ffffff";
-    ctx.textAlign="center";
-    ctx.textBaseline="middle";
-    ctx.font="bold "+(items.length>22?10:items.length>14?12:14)+"px sans-serif";
-    let label=item.title;
-    const maxLength=items.length>22?11:items.length>14?15:20;
-    if(label.length>maxLength) label=label.slice(0,maxLength-1)+"…";
-    ctx.fillText(label,0,0,Math.min(145,radius*.8));
-    ctx.restore();
-  });
-
-  ctx.beginPath();
-  ctx.arc(cx,cy,43,0,Math.PI*2);
-  ctx.fillStyle="#211033";
-  ctx.fill();
-  ctx.strokeStyle="#f0dfff";
-  ctx.lineWidth=4;
-  ctx.stroke();
-  ctx.fillStyle="#ffffff";
-  ctx.textAlign="center";
-  ctx.textBaseline="middle";
-  ctx.font="900 13px sans-serif";
-  ctx.fillText("ANIME",cx,cy-8);
-  ctx.fillText("SPIN",cx,cy+9);
-}
-
-function spinAnimeWheel(){
-  if(spinWheelBusy) return;
-
-  const items=getWheelAnimeItems();
-  const canvas=document.getElementById("animeSpinWheel");
-  const button=document.getElementById("spinWheelBtn");
-
-  if(!items.length){
-    alert("Abhi koi available anime nahi hai. Admin Panel mein anime ko available mark karo.");
-    drawAnimeSpinWheel();
-    return;
-  }
-  if(!canvas || !button) return;
-
-  drawAnimeSpinWheel();
-
-  const selectedIndex=Math.floor(Math.random()*items.length);
-  const selected=items[selectedIndex];
-  const segmentAngle=360/items.length;
-  const targetAngle=(360-((selectedIndex+0.5)*segmentAngle)%360)%360;
-  const currentAngle=((spinWheelRotation%360)+360)%360;
-  let delta=(targetAngle-currentAngle+360)%360;
-  if(delta<1) delta+=360;
-
-  spinWheelBusy=true;
-  button.disabled=true;
-  button.textContent="SPINNING…";
-  spinWheelRotation+=360*5+delta;
-  canvas.style.transform="rotate("+spinWheelRotation+"deg)";
-
-  setTimeout(()=>{
-    spinWheelBusy=false;
-    button.disabled=false;
-    button.textContent="SPIN THE WHEEL";
-    openDetails(selected.id);
-  },4900);
-}
-
-/* ================================
    SEARCH
 ================================ */
 
@@ -2799,23 +2536,305 @@ loadAnimeFromD1();
 <script data-cfasync="false" src="https://bauval.org/14/acc1d3bcf1222236d53abe1156fbb2c2"></script>
 
 <style id="animeSuperNeonBackground">
-body {
-  background:
-    radial-gradient(ellipse at 15% 20%, rgba(168,85,247,.25), transparent 42%),
-    radial-gradient(ellipse at 85% 25%, rgba(34,211,238,.18), transparent 40%),
-    radial-gradient(ellipse at 70% 85%, rgba(236,72,153,.18), transparent 42%),
-    radial-gradient(ellipse at 20% 80%, rgba(34,197,94,.12), transparent 40%),
-    #08070d !important;
-  background-size: 180% 180%;
-  animation: animeSuperNeonShift 24s ease-in-out infinite alternate;
+:root{
+  color-scheme:dark;
+  --bg:#0b0b0e;
+  --panel:#141419;
+  --panel-hover:#1b1b23;
+  --accent:#a78bfa;
+  --accent-light:#c4b5fd;
+  --line:rgba(255,255,255,.09);
+  --muted:#aaaab8;
 }
-@keyframes animeSuperNeonShift {
-  0% { background-position: 0% 0%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 100%; }
+html{scroll-behavior:smooth;background:var(--bg)}
+body{
+  min-height:100vh;
+  background:linear-gradient(180deg,#111016 0,#0b0b0e 320px,#0b0b0e 100%);
+  color:#f5f4f8;
+  font-family:Inter,system-ui,-apple-system,"Segoe UI",Arial,sans-serif;
+  letter-spacing:0;
 }
-@media (prefers-reduced-motion: reduce) {
-  body { animation: none; }
+header{
+  min-height:68px;
+  padding:12px clamp(14px,3vw,36px);
+  gap:20px;
+  background:rgba(13,13,17,.94);
+  border-bottom:1px solid var(--line);
+  box-shadow:0 5px 22px rgba(0,0,0,.18);
+  -webkit-backdrop-filter:blur(16px);
+  backdrop-filter:blur(16px);
+}
+.logo{
+  color:#eee8ff;
+  font-size:23px;
+  font-weight:850;
+  letter-spacing:-.8px;
+  text-shadow:none;
+}
+.search{max-width:540px}
+.search input{
+  min-height:44px;
+  padding:11px 16px;
+  border:1px solid #2a2932;
+  border-radius:12px;
+  background:#19191f;
+  color:#fff;
+  transition:border-color .2s,background .2s;
+}
+.search input:focus{
+  border-color:#8065c7;
+  background:#1c1a24;
+  box-shadow:0 0 0 3px rgba(167,139,250,.1);
+}
+main{
+  width:100%;
+  max-width:1560px;
+  margin:0 auto;
+  padding:clamp(16px,2.5vw,32px);
+}
+.home-title{
+  display:flex;
+  align-items:center;
+  gap:11px;
+  margin:12px 0 20px;
+  color:#f4f1fa;
+  font-size:clamp(23px,3vw,30px);
+  font-weight:780;
+  letter-spacing:-.7px;
+}
+.home-title::before{
+  content:"";
+  width:4px;
+  height:26px;
+  flex:0 0 4px;
+  border-radius:4px;
+  background:var(--accent);
+  box-shadow:none;
+}
+.hero-banner{
+  min-height:clamp(290px,34vw,410px);
+  margin:12px 0 34px;
+  padding:clamp(22px,3vw,38px);
+  border:1px solid rgba(196,181,253,.16);
+  border-radius:16px;
+  background:#15131b;
+  box-shadow:0 12px 32px rgba(0,0,0,.22);
+}
+.hero-banner .hero-backdrop{opacity:.56;object-position:center 30%}
+.hero-banner::after{
+  background:linear-gradient(90deg,rgba(9,9,13,.96) 0%,rgba(9,9,13,.78) 43%,rgba(9,9,13,.18) 100%),
+             linear-gradient(0deg,rgba(9,9,13,.65),transparent 65%);
+}
+.hero-content{max-width:620px}
+.hero-kicker{
+  display:inline-block;
+  margin-bottom:13px;
+  padding:6px 9px;
+  border:1px solid rgba(196,181,253,.2);
+  border-radius:5px;
+  background:rgba(12,11,17,.55);
+  color:#d0c1fa;
+  font-size:10px;
+  font-weight:750;
+  letter-spacing:2px;
+}
+.hero-title{
+  margin-bottom:13px;
+  color:#fff;
+  font-size:clamp(29px,4.5vw,49px);
+  line-height:1.08;
+  font-weight:850;
+  letter-spacing:-1px;
+  text-shadow:0 2px 14px rgba(0,0,0,.35);
+}
+.hero-description{
+  color:#d0ced8;
+  font-size:14px;
+  line-height:1.7;
+}
+.hero-action{
+  min-height:44px;
+  padding:0 21px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;
+  background:#c4b5fd;
+  color:#17111f;
+  box-shadow:none;
+  font-weight:800;
+}
+.hero-action:hover{background:#d4c9ff;filter:none;transform:translateY(-1px)}
+.grid{
+  grid-template-columns:repeat(auto-fill,minmax(min(155px,42vw),1fr));
+  gap:clamp(12px,1.5vw,20px);
+}
+.card{
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--panel);
+  box-shadow:0 5px 16px rgba(0,0,0,.16);
+  transition:transform .2s ease,border-color .2s ease,background .2s ease;
+}
+.card:hover{
+  transform:translateY(-3px);
+  border-color:rgba(196,181,253,.38);
+  background:var(--panel-hover);
+  box-shadow:0 10px 24px rgba(0,0,0,.26);
+}
+.card img{
+  display:block;
+  width:100%;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  background:#191820;
+  transition:filter .2s ease;
+}
+.card:hover img{filter:brightness(1.04)}
+.card-title{
+  min-height:54px;
+  padding:11px 10px 13px;
+  color:#f0eef5;
+  font-size:13px;
+  font-weight:650;
+  line-height:1.45;
+}
+.details{max-width:1100px}
+.detail-top{gap:clamp(18px,3vw,30px)}
+.poster{
+  width:clamp(145px,23vw,230px);
+  height:auto;
+  aspect-ratio:2/3;
+  object-fit:cover;
+  border:1px solid var(--line);
+  border-radius:10px;
+  box-shadow:0 8px 24px rgba(0,0,0,.24);
+}
+.info h1{
+  margin-bottom:13px;
+  color:#f8f6fc;
+  font-size:clamp(24px,3.4vw,36px);
+  line-height:1.16;
+  letter-spacing:-.6px;
+}
+.info p{color:var(--muted);line-height:1.75}
+.back,.season-select,.player-select{
+  border:1px solid #302d39;
+  border-radius:8px;
+  background:#191820;
+  color:#f0edf7;
+}
+.back:hover,.season-select:hover,.player-select:hover{
+  border-color:#75619e;
+  background:#211e2a;
+}
+.watch-btn{
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:8px;
+  background:#c4b5fd;
+  color:#17111f;
+  box-shadow:none;
+}
+.watch-btn:hover{background:#d4c9ff;transform:translateY(-1px);box-shadow:none}
+.season-bar{margin-top:27px}
+.episodes{margin-top:24px}
+.episodes h2{margin-bottom:13px;color:#f4f1fa}
+.episode-list{scrollbar-color:#62527f #17161c}
+.episode{
+  border:1px solid rgba(255,255,255,.1);
+  border-radius:9px;
+  background:#17161d;
+  color:#eeeaf7;
+}
+.episode-meta{color:#bdb0dc}
+.episode:hover{
+  border-color:#8871bd;
+  background:#211c2c;
+  transform:translateY(-2px);
+}
+.episode.active{
+  border-color:#b9a3f5;
+  background:#34264c;
+  box-shadow:inset 0 0 0 1px rgba(196,181,253,.08);
+}
+.episode-navigation{
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#15141b;
+  box-shadow:none;
+}
+.episode-navigation .back{
+  border:1px solid #383342;
+  border-radius:8px;
+  background:#211e29;
+  color:#f4f0ff;
+}
+.episode-navigation .back:not(:disabled):hover{
+  border-color:#8871bd;
+  background:#2a2436;
+  box-shadow:none;
+}
+#episodeNavigationLabel{color:#e3dafa}
+.player-page{max-width:1100px}
+.player-title{
+  margin-bottom:16px;
+  color:#f7f4fb;
+  font-size:clamp(22px,3vw,30px);
+  letter-spacing:-.4px;
+}
+.player-box{
+  border:1px solid #302d38;
+  border-radius:12px;
+  background:#000;
+  box-shadow:0 12px 30px rgba(0,0,0,.25);
+}
+.player-controls{gap:10px}
+.notice{
+  border-left-color:#a78bfa;
+  border-radius:0 8px 8px 0;
+  background:#17151e;
+  color:#c4c0ce;
+}
+.coming{color:#c4b5fd}
+#adsterra-native-banner{margin-top:24px}
+button,input,select{font-family:inherit}
+button:focus-visible,input:focus-visible,select:focus-visible{
+  outline:2px solid #b9a3f5;
+  outline-offset:3px;
+}
+@media(max-width:600px){
+  header{min-height:60px;gap:10px;padding:10px 12px}
+  .logo{font-size:19px;letter-spacing:-.5px}
+  .search input{min-height:40px;padding:9px 11px;border-radius:10px;font-size:13px}
+  main{padding:16px 12px}
+  .home-title{margin:8px 0 16px;font-size:24px}
+  .hero-banner{
+    min-height:285px;
+    margin:12px 0 26px;
+    padding:23px 17px;
+    border-radius:12px;
+    box-shadow:0 8px 22px rgba(0,0,0,.22);
+  }
+  .hero-banner .hero-backdrop{opacity:.45;object-position:center}
+  .hero-banner::after{
+    background:linear-gradient(90deg,rgba(9,9,13,.9),rgba(9,9,13,.4)),
+               linear-gradient(0deg,rgba(9,9,13,.68),transparent);
+  }
+  .hero-title{font-size:clamp(27px,8vw,34px)}
+  .hero-description{font-size:13px;line-height:1.6}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+  .card{border-radius:9px}
+  .card-title{min-height:50px;padding:9px;font-size:12px}
+  .detail-top{gap:16px}
+  .poster{width:150px;height:auto}
+  .info h1{font-size:23px}
+  .player-box{border-radius:9px}
+  .player-controls{padding:10px;gap:8px}
+  .episode-navigation{gap:7px;padding:10px 8px}
+  .episode-navigation .back{min-height:38px;padding:9px;font-size:12px}
+  #episodeNavigationLabel{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  *,*::before,*::after{transition:none!important;animation:none!important}
 }
 </style>
 
