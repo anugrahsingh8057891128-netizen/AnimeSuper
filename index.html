@@ -882,6 +882,48 @@ button, .btn {
 
 </style>
 
+
+<style id="reference-homepage-design">
+#homePage{max-width:1500px;margin:0 auto}
+.reference-genres{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:12px;margin:0 0 30px}
+.reference-genre{min-height:58px;border:1px solid #292943;border-radius:13px;background:linear-gradient(135deg,#17172b,#10101b);color:#e8e7f7;font:700 13px inherit;cursor:pointer;transition:transform .2s,border-color .2s,background .2s}
+.reference-genre:hover,.reference-genre.active{transform:translateY(-2px);border-color:#8872ff;background:linear-gradient(135deg,#292044,#17172b);box-shadow:0 7px 22px #7654ff20}
+.reference-home-layout{display:grid;grid-template-columns:minmax(0,1fr) 285px;gap:28px;align-items:start}
+.reference-main-column{min-width:0}
+.reference-section{min-width:0;margin:0 0 32px}
+.reference-section-heading{display:flex;justify-content:space-between;align-items:end;gap:12px;margin:0 0 17px}
+.reference-section-heading h2{margin:5px 0 0;color:#f7f5ff;font-size:clamp(21px,2.5vw,29px);font-weight:850;letter-spacing:-.7px}
+.reference-eyebrow{color:#a99aff;font-size:9px;font-weight:800;letter-spacing:2px}
+.reference-section-mark{color:#a99aff;border:1px solid #393052;border-radius:7px;padding:6px 9px;font-size:9px;font-weight:800;letter-spacing:1px}
+.reference-home-layout .grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+.reference-home-layout .card{min-width:0;overflow:hidden;border:1px solid #28263b;border-radius:12px;background:#12121d;box-shadow:0 7px 20px #0002;transition:transform .22s,border-color .22s,box-shadow .22s}
+.reference-home-layout .card:hover{transform:translateY(-4px);border-color:#7663e8;box-shadow:0 12px 26px #6550dc20}
+.reference-home-layout .card img{display:block;width:100%;aspect-ratio:3/4;object-fit:cover}
+.reference-home-layout .card-title{min-height:48px;padding:11px 10px;color:#f1efff;font-size:13px;line-height:1.45}
+.reference-trending{position:sticky;top:90px;min-width:0;padding:18px;border:1px solid #29263d;border-radius:16px;background:linear-gradient(160deg,#171526,#101019)}
+.reference-trending .reference-section-heading{margin-bottom:15px}
+.reference-trending .reference-section-heading h2{font-size:22px}
+.reference-trending-list{display:grid;gap:12px}
+.reference-trending-item{display:grid;grid-template-columns:55px minmax(0,1fr);gap:11px;align-items:center;padding-bottom:12px;border-bottom:1px solid #29263b;cursor:pointer}
+.reference-trending-item img{width:55px;height:70px;object-fit:cover;border-radius:7px;background:#242238}
+.reference-trending-item strong{display:-webkit-box;overflow:hidden;color:#f2efff;font-size:12px;line-height:1.45;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.reference-trending-item small{display:block;margin-top:6px;color:#a89ccf;font-size:10px}
+.reference-trending-rank{color:#9b88ff;font-size:10px;font-weight:900;letter-spacing:1px}
+.reference-promo{margin-top:20px;padding:17px;border:1px solid #4c3672;border-radius:12px;background:radial-gradient(ellipse at top right,#3b2365,#191526 72%)}
+.reference-promo-icon{color:#c6aaff;font-size:22px}
+.reference-promo h3{margin:10px 0 6px;color:#fff;font-size:16px}
+.reference-promo p{margin:0;color:#c2bad7;font-size:12px;line-height:1.6}
+.reference-footer{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px;margin-top:35px;padding:22px 0;border-top:1px solid #29263b;color:#a5a0b9;font-size:11px}
+.reference-footer-logo{color:#f6f2ff;font-size:14px;font-weight:900;letter-spacing:1px}
+.reference-footer-logo b{color:#a99aff}
+.reference-footer-points{font-size:9px;letter-spacing:1px}
+@media(max-width:1000px){.reference-home-layout{grid-template-columns:minmax(0,1fr) 235px;gap:18px}.reference-home-layout .grid{grid-template-columns:repeat(3,minmax(0,1fr))}.reference-trending{padding:13px}.reference-genres{gap:8px}}
+@media(max-width:720px){.reference-genres{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:24px}.reference-genre{min-height:47px;font-size:12px}.reference-home-layout{grid-template-columns:minmax(0,1fr)}.reference-trending{position:static;grid-row:2}.reference-home-layout .grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.reference-trending-list{grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.reference-trending-item{grid-template-columns:46px minmax(0,1fr);gap:8px}.reference-trending-item img{width:46px;height:61px}.reference-promo{margin-top:16px}.reference-footer{align-items:flex-start;flex-direction:column}}
+@media(prefers-reduced-motion:reduce){.reference-genre,.reference-home-layout .card{transition:none}}
+</style>
+<style id="reference-empty-state">
+.reference-empty{grid-column:1/-1;padding:20px;border:1px dashed #39334f;border-radius:12px;color:#b9b0d1;text-align:center}
+</style>
 </head>
 
 <body>
@@ -902,18 +944,61 @@ button, .btn {
 
 <section id="homePage" class="page active">
 
-<div class="home-title">
-Anime & Movies
-</div>
-
 <div id="heroBanner" class="hero-banner" style="display:none"></div>
 
-<div id="animeGrid" class="grid"></div>
+<section class="reference-genres" aria-label="Browse genres">
+  <button class="reference-genre" data-genre="action">⚔️ Action</button>
+  <button class="reference-genre" data-genre="romance">💗 Romance</button>
+  <button class="reference-genre" data-genre="fantasy">✨ Fantasy</button>
+  <button class="reference-genre" data-genre="adventure">🌍 Adventure</button>
+  <button class="reference-genre" data-genre="comedy">😂 Comedy</button>
+  <button class="reference-genre" data-genre="all">▦ All Anime</button>
+</section>
 
-<div id="adsterra-native-banner">
-<script async="async" data-cfasync="false" src="https://bauval.org/21/b858729dfcbddba51204f4d9e8cecdfc"></script>
-<div id="container-b858729dfcbddba51204f4d9e8cecdfc"></div>
+<div class="reference-home-layout">
+  <div class="reference-main-column">
+    <section class="reference-section">
+      <div class="reference-section-heading">
+        <div><span class="reference-eyebrow">YOUR NEXT OBSESSION</span><h2>Latest Anime</h2></div>
+        <span class="reference-section-mark">ANIME</span>
+      </div>
+      <div id="animeGrid" class="grid"></div>
+    </section>
+
+
+
+    <section class="reference-section reference-movies-section">
+      <div class="reference-section-heading">
+        <div><span class="reference-eyebrow">FEATURE-LENGTH STORIES</span><h2>Latest Movies</h2></div>
+        <span class="reference-section-mark">MOVIES</span>
+      </div>
+      <div id="movieGrid" class="grid"></div>
+    </section>
+  </div>
+
+  <aside class="reference-trending">
+    <div class="reference-section-heading">
+      <div><span class="reference-eyebrow">POPULAR PICKS</span><h2>Trending Now</h2></div>
+    </div>
+    <div id="trendingList" class="reference-trending-list"></div>
+    <div class="reference-promo">
+      <span class="reference-promo-icon">✦</span>
+      <h3>Your anime universe.</h3>
+      <p>Discover your next favourite story on Anime Super.</p>
+    </div>
+  </aside>
 </div>
+
+<footer class="reference-footer">
+  <span class="reference-footer-logo">ANIME <b>SUPER</b></span>
+  <span>Anime stories, all in one place.</span>
+  <span class="reference-footer-points">HD EXPERIENCE · EASY BROWSING</span>
+</footer>
+
+    <div id="adsterra-native-banner">
+      <script async="async" data-cfasync="false" src="https://bauval.org/21/b858729dfcbddba51204f4d9e8cecdfc"></script>
+      <div id="container-b858729dfcbddba51204f4d9e8cecdfc"></div>
+    </div>
 
 </section>
 
@@ -1501,10 +1586,14 @@ async function loadAnimeFromD1(){
     });
 
     renderAnime();
+    renderMovies();
+    renderTrending();
     renderHero();
   }catch(error){
     console.error("D1 anime load error:",error);
     renderAnime();
+    renderMovies();
+    renderTrending();
     renderHero();
   }
 }
@@ -1700,43 +1789,97 @@ function renderHero(){
     }, 5000);
   }
 }
-function renderAnime(
-list=Object.keys(anime)
-){
+function createHomeCard(id){
+  const data=anime[id];
+  if(!data) return null;
 
-const grid=
-document.getElementById("animeGrid");
+  const card=document.createElement("div");
+  card.className="card";
 
-grid.innerHTML="";
+  const image=document.createElement("img");
+  image.src=data.poster || "";
+  image.alt=data.title || "Anime";
+  image.loading="lazy";
 
-list.forEach(id=>{
+  const title=document.createElement("div");
+  title.className="card-title";
+  title.textContent=data.title || "Untitled";
 
-const data=anime[id];
+  card.append(image,title);
+  card.addEventListener("click",()=>openDetails(id));
+  return card;
+}
 
-const card=
-document.createElement("div");
+function renderAnime(list=Object.keys(anime)){
+  const grid=document.getElementById("animeGrid");
+  if(!grid) return;
+  grid.replaceChildren();
 
-card.className="card";
+  list.filter(id=>anime[id] && !anime[id].movie).forEach(id=>{
+    const card=createHomeCard(id);
+    if(card) grid.appendChild(card);
+  });
 
-card.innerHTML=`
+  if(!grid.children.length){
+    const empty=document.createElement("p");
+    empty.className="reference-empty";
+    empty.textContent="No anime found.";
+    grid.appendChild(empty);
+  }
+}
 
-<img
-src="${data.poster}"
-alt="${data.title}"
-loading="lazy">
+function renderMovies(list=Object.keys(anime)){
+  const grid=document.getElementById("movieGrid");
+  if(!grid) return;
+  grid.replaceChildren();
 
-<div class="card-title">
-${data.title}
-</div>
+  list.filter(id=>anime[id] && anime[id].movie).forEach(id=>{
+    const card=createHomeCard(id);
+    if(card) grid.appendChild(card);
+  });
 
-`;
+  if(!grid.children.length){
+    const empty=document.createElement("p");
+    empty.className="reference-empty";
+    empty.textContent="No movies available yet.";
+    grid.appendChild(empty);
+  }
+}
 
-card.onclick=()=>openDetails(id);
+function renderTrending(){
+  const list=document.getElementById("trendingList");
+  if(!list) return;
+  list.replaceChildren();
 
-grid.appendChild(card);
+  Object.keys(anime)
+    .filter(id=>anime[id] && anime[id].title && anime[id].poster && anime[id].available !== false)
+    .slice(0,5)
+    .forEach((id,index)=>{
+      const data=anime[id];
+      const item=document.createElement("div");
+      item.className="reference-trending-item";
 
-});
+      const image=document.createElement("img");
+      image.src=data.poster;
+      image.alt="";
+      image.loading="lazy";
 
+      const info=document.createElement("div");
+      const rank=document.createElement("span");
+      rank.className="reference-trending-rank";
+      rank.textContent="POPULAR PICK "+String(index+1).padStart(2,"0");
+
+      const title=document.createElement("strong");
+      title.textContent=data.title;
+
+      const type=document.createElement("small");
+      type.textContent=data.movie ? "Anime Movie" : "Anime Series";
+
+      info.append(rank,title,type);
+      item.append(image,info);
+      item.addEventListener("click",()=>openDetails(id));
+      list.appendChild(item);
+    });
 }
 
 
@@ -2646,34 +2789,37 @@ openDetails(currentAnime);
    SEARCH
 ================================ */
 
-document.getElementById("search")
-.addEventListener(
-"input",
-function(){
+document.getElementById("search").addEventListener("input",function(){
+  const query=this.value.toLowerCase().trim();
+  const result=Object.keys(anime).filter(id=>
+    String(anime[id].title || "").toLowerCase().includes(query)
+  );
 
-const query=
-this.value
-.toLowerCase()
-.trim();
+  renderAnime(query ? result : Object.keys(anime));
+  renderMovies(query ? result : Object.keys(anime));
+  renderTrending();
 
-const result=
-Object.keys(anime)
-.filter(id=>
+  const heroBanner=document.getElementById("heroBanner");
+  if(heroBanner) heroBanner.style.display=query ? "none" : "flex";
 
-anime[id]
-.title
-.toLowerCase()
-.includes(query)
+  const genres=document.querySelector(".reference-genres");
+  const trending=document.querySelector(".reference-trending");
+  const movies=document.querySelector(".reference-movies-section");
+  if(genres) genres.style.display=query ? "none" : "";
+  if(trending) trending.style.display=query ? "none" : "";
+  if(movies) movies.style.display=query ? "none" : "";
+});
 
-);
-
-renderAnime(result);
-
-const heroBanner = document.getElementById("heroBanner");
-if(heroBanner){
-  heroBanner.style.display = query ? "none" : "flex";
-}
-
+document.querySelectorAll(".reference-genre").forEach(button=>{
+  button.addEventListener("click",()=>{
+    const genre=button.dataset.genre || "all";
+    const search=document.getElementById("search");
+    search.value=genre==="all" ? "" : genre;
+    search.dispatchEvent(new Event("input"));
+    document.querySelectorAll(".reference-genre").forEach(item=>
+      item.classList.toggle("active",item===button)
+    );
+  });
 });
 
 
