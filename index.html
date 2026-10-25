@@ -732,6 +732,108 @@ font-size:12px;
 }
 
 </style>
+
+<style id="premiumNeonTheme">
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=Poppins:wght@600;700;800&display=swap');
+
+:root{
+  --neon-purple: #8b5cf6;
+  --neon-pink: #ec4899;
+  --bg-deep: #08080c;
+  --bg-card: #111118;
+  --bg-elevated: #18181f;
+  --text-primary: #f4f4f5;
+  --text-secondary: #a1a1aa;
+  --border-subtle: rgba(255,255,255,0.06);
+}
+
+*{ font-family: 'Inter', -apple-system, sans-serif !important; }
+
+body{
+  background: var(--bg-deep) !important;
+  color: var(--text-primary) !important;
+}
+
+h1,h2,h3,h4,h5,h6,.logo,.section-title{
+  font-family: 'Poppins', sans-serif !important;
+  font-weight: 800 !important;
+}
+
+header,.navbar,nav{
+  background: rgba(8,8,12,0.7) !important;
+  backdrop-filter: blur(24px) !important;
+  border-bottom: 1px solid var(--border-subtle) !important;
+}
+
+input[type="text"],input[type="search"]{
+  background: var(--bg-elevated) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 14px !important;
+  padding: 14px 18px !important;
+  color: var(--text-primary) !important;
+}
+
+input:focus{
+  outline: none !important;
+  border-color: var(--neon-purple) !important;
+  box-shadow: 0 0 0 4px rgba(139,92,246,0.15) !important;
+}
+
+button,.btn{
+  border-radius: 14px !important;
+  padding: 12px 24px !important;
+  font-weight: 600 !important;
+  background: linear-gradient(135deg, var(--neon-purple), var(--neon-pink)) !important;
+  color: white !important;
+  border: none !important;
+  box-shadow: 0 4px 20px rgba(139,92,246,0.4) !important;
+  transition: all 0.3s ease !important;
+}
+
+button:hover,.btn:hover{
+  transform: translateY(-2px) !important;
+  box-shadow: 0 8px 30px rgba(139,92,246,0.6) !important;
+}
+
+.anime-card,.card,.anime-item{
+  background: var(--bg-card) !important;
+  border: 1px solid var(--border-subtle) !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  transition: all 0.4s ease !important;
+}
+
+.anime-card:hover,.card:hover,.anime-item:hover{
+  transform: translateY(-6px) scale(1.02) !important;
+  border-color: rgba(139,92,246,0.5) !important;
+  box-shadow: 0 0 40px rgba(139,92,246,0.35), 0 20px 60px rgba(0,0,0,0.5) !important;
+}
+
+.anime-card img,.card img{
+  transition: transform 0.5s ease !important;
+}
+
+.anime-card:hover img,.card:hover img{
+  transform: scale(1.08) !important;
+}
+
+a{
+  color: var(--neon-purple) !important;
+  text-decoration: none !important;
+}
+
+a:hover{
+  color: var(--neon-pink) !important;
+}
+
+::-webkit-scrollbar{ width: 10px; }
+::-webkit-scrollbar-track{ background: var(--bg-deep); }
+::-webkit-scrollbar-thumb{
+  background: linear-gradient(180deg, var(--neon-purple), var(--neon-pink));
+  border-radius: 10px;
+}
+</style>
+
 </head>
 
 <body>
