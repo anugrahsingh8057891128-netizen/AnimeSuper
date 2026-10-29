@@ -924,6 +924,60 @@ button, .btn {
 <style id="reference-empty-state">
 .reference-empty{grid-column:1/-1;padding:20px;border:1px dashed #39334f;border-radius:12px;color:#b9b0d1;text-align:center}
 </style>
+
+<style>
+.episode.episode-scene-card{
+position:relative;
+flex:0 0 180px;
+height:104px;
+min-height:104px;
+display:block;
+overflow:hidden;
+padding:0;
+border-radius:12px;
+background:linear-gradient(135deg,#352052,#15111f);
+border:1px solid rgba(196,181,253,.2);
+}
+.episode.episode-scene-card::before,
+.episode.episode-scene-card.active::before{
+content:none;
+}
+.episode-scene-image{
+position:absolute;
+inset:0;
+width:100%;
+height:100%;
+object-fit:cover;
+display:block;
+}
+.episode.episode-scene-card::after{
+content:"";
+position:absolute;
+inset:0;
+background:linear-gradient(180deg,rgba(0,0,0,.05),rgba(0,0,0,.72));
+pointer-events:none;
+}
+.episode-scene-label{
+position:absolute;
+z-index:2;
+left:9px;
+bottom:8px;
+padding:5px 9px;
+border-radius:6px;
+background:rgba(20,12,32,.85);
+color:#fff;
+font-size:13px;
+font-weight:800;
+letter-spacing:.4px;
+}
+.episode.episode-scene-card.active{
+border:2px solid #c4b5fd;
+box-shadow:0 0 16px rgba(139,92,246,.4);
+}
+@media(max-width:600px){
+.episode.episode-scene-card{flex-basis:155px;height:92px;min-height:92px}
+}
+</style>
 </head>
 
 <body>
@@ -1520,6 +1574,7 @@ let episodeLanguages={};
 let episodeQualities={};
 let episodeServers={};
 let episodeLanguageData={};
+let episodeThumbnails={};
 
 const video=
 document.getElementById("video");
@@ -1608,12 +1663,15 @@ async function loadAnimeContentFromD1(id){
     episodeQualities[id]=new Set();
     episodeServers[id]={};
     episodeLanguageData[id]={};
+    episodeThumbnails[id]={};
 
     if(episodeData.success){
       episodeData.episodes.forEach(ep=>{
         const season=String(ep.season || 1);
         const episode=String(ep.episode);
         const language=String(ep.language || "Hindi");
+        episodeThumbnails[id][season] ||= {};
+        episodeThumbnails[id][season][episode] ||= ep.thumbnail || "";
 
         if(!seasons[id][season]){
           seasons[id][season]={name:"Season "+season,episodes:[]};
@@ -2084,136 +2142,63 @@ container.appendChild(select);
    SEASON EPISODES
 ================================ */
 
+function createEpisodeSceneCard(ep, season){
+const button=document.createElement("div");
+button.className="episode episode-scene-card"+(Number(ep)===Number(currentEpisode)?" active":"");
+const thumbnail=episodeThumbnails[currentAnime]?.[String(season)]?.[String(ep)] || "";
+if(thumbnail){
+const img=document.createElement("img");
+img.className="episode-scene-image";
+img.src=thumbnail;
+img.alt="Episode "+ep+" scene";
+img.loading="lazy";
+img.onerror=()=>img.remove();
+button.appendChild(img);
+}
+const label=document.createElement("span");
+label.className="episode-scene-label";
+label.textContent="EP "+ep;
+button.appendChild(label);
+return button;
+}
+
 function renderSeasonEpisodes(){
-
-const container=
-document.getElementById("episodeContainer");
-
-const eps=
-seasons[currentAnime]
-[currentSeason]
-.episodes;
-
-container.innerHTML=
-"<h2>Episodes</h2>";
-
-
-const list=
-document.createElement("div");
-
+const container=document.getElementById("episodeContainer");
+const eps=seasons[currentAnime][currentSeason].episodes;
+container.innerHTML="<h2>Episodes</h2>";
+const list=document.createElement("div");
 list.className="episode-list";
-
 eps.forEach(ep=>{
-
-const button=
-document.createElement("div");
-
-button.className="episode"+(Number(ep)===Number(currentEpisode)?" active":"");
-
-button.textContent=
-"EP "+ep;
-
-const episodeData=
-episodeLanguageData[currentAnime]?.[String(currentSeason || 1)]?.[String(ep)] || {};
-
-const episodeAudio=Object.keys(episodeData);
-const episodeQuality=["1080p","720p","360p"].filter(q=>
-episodeAudio.some(lang=>episodeData[lang]?.[q]?.server1 || episodeData[lang]?.[q]?.server2)
-);
-
-if(episodeAudio.length || episodeQuality.length){
-const meta=document.createElement("small");
-meta.className="episode-meta";
-meta.textContent=
-(episodeAudio.length ? "Audio: "+episodeAudio.join(" • ") : "")+
-(episodeAudio.length && episodeQuality.length ? " | " : "")+
-(episodeQuality.length ? "Quality: "+episodeQuality.join(" • ") : "");
-button.appendChild(meta);
-}
-
+const button=createEpisodeSceneCard(ep,currentSeason);
 button.onclick=()=>{
-
 currentEpisode=ep;
-
 openEpisodePlayer();
-
 };
-
 list.appendChild(button);
-
 });
-
 container.appendChild(list);
-
 }
-
 
 /* ================================
    NORMAL EPISODES
 ================================ */
 
 function renderNormalEpisodes(){
-
-const container=
-document.getElementById("episodeContainer");
-
-const eps=
-Object.keys(videos[currentAnime]);
-
-container.innerHTML=
-"<h2>Episodes</h2>";
-
-
-const list=
-document.createElement("div");
-
+const container=document.getElementById("episodeContainer");
+const eps=Object.keys(videos[currentAnime]);
+container.innerHTML="<h2>Episodes</h2>";
+const list=document.createElement("div");
 list.className="episode-list";
-
 eps.forEach(ep=>{
-
-const button=
-document.createElement("div");
-
-button.className="episode"+(Number(ep)===Number(currentEpisode)?" active":"");
-
-button.textContent=
-"EP "+ep;
-
-const episodeData=
-episodeLanguageData[currentAnime]?.["1"]?.[String(ep)] || {};
-
-const episodeAudio=Object.keys(episodeData);
-const episodeQuality=["1080p","720p","360p"].filter(q=>
-episodeAudio.some(lang=>episodeData[lang]?.[q]?.server1 || episodeData[lang]?.[q]?.server2)
-);
-
-if(episodeAudio.length || episodeQuality.length){
-const meta=document.createElement("small");
-meta.className="episode-meta";
-meta.textContent=
-(episodeAudio.length ? "Audio: "+episodeAudio.join(" • ") : "")+
-(episodeAudio.length && episodeQuality.length ? " | " : "")+
-(episodeQuality.length ? "Quality: "+episodeQuality.join(" • ") : "");
-button.appendChild(meta);
-}
-
+const button=createEpisodeSceneCard(ep,1);
 button.onclick=()=>{
-
-currentEpisode=
-Number(ep);
-
+currentEpisode=Number(ep);
 openEpisodePlayer();
-
 };
-
 list.appendChild(button);
-
 });
-
 container.appendChild(list);
-
 }
-
 
 /* ================================
    EPISODE PLAYER
@@ -3136,3 +3121,4 @@ button:focus-visible,input:focus-visible,select:focus-visible{
 
 </body>
 </html>
+

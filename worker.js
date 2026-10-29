@@ -152,7 +152,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
           return Response.json({ success:false, error:"Invalid anime ID" }, {status:400});
         }
         const result = await env.DB.prepare(
-          `SELECT id, anime_id, season, episode, language, title, url_360, url_720, url_1080, url_360_server2, url_720_server2, url_1080_server2
+          `SELECT id, anime_id, season, episode, language, title, thumbnail, url_360, url_720, url_1080, url_360_server2, url_720_server2, url_1080_server2
            FROM episodes
            WHERE anime_id = ?
            ORDER BY season ASC, episode ASC`
@@ -468,6 +468,73 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
           );
         }
 
+        let thumbnail = String(data.thumbnail || "").trim();
+
+        // Automatically fetch episode thumbnails from TMDB-backed metadata.
+        // Keep manual thumbnails and fail safely if lookup is uncertain.
+        if (!thumbnail) {
+          try {
+            const animeRow = await env.DB.prepare(
+              "SELECT title FROM anime WHERE id = ?"
+            ).bind(animeId).first();
+
+            if (animeRow && animeRow.title) {
+              const searchUrl =
+                "https://anime-metadata-api.vercel.app/api/search?query=" +
+                encodeURIComponent(animeRow.title) + "&limit=10";
+
+              const searchRes = await fetch(searchUrl, {
+                signal: AbortSignal.timeout(5000)
+              });
+
+              if (searchRes.ok) {
+                const searchData = await searchRes.json();
+                const candidates = Array.isArray(searchData.results)
+                  ? searchData.results : [];
+                const normalize = value => String(value || "")
+                  .toLowerCase()
+                  .replace(/[^a-z0-9]+/g, " ")
+                  .trim();
+                const target = normalize(animeRow.title);
+
+                const match = candidates.find(item => {
+                  const names = [item.title, item.titleRomaji]
+                    .map(normalize)
+                    .filter(Boolean);
+                  return names.some(name =>
+                    name === target ||
+                    (name.length >= 8 && target.length >= 8 &&
+                     (name.includes(target) || target.includes(name)))
+                  );
+                });
+
+                if (match && match.anilistId) {
+                  const episodeRes = await fetch(
+                    `https://anime-metadata-api.vercel.app/api/episodes/${encodeURIComponent(match.anilistId)}`,
+                    { signal: AbortSignal.timeout(5000) }
+                  );
+
+                  if (episodeRes.ok) {
+                    const episodeData = await episodeRes.json();
+                    const episodes = Array.isArray(episodeData.data?.episodes)
+                      ? episodeData.data.episodes : [];
+
+                    const found = episodes.find(item =>
+                      Number(item.number) === episode &&
+                      typeof item.image === "string" &&
+                      item.image.startsWith("https://image.tmdb.org/")
+                    );
+
+                    if (found) thumbnail = found.image;
+                  }
+                }
+              }
+            }
+          } catch (error) {
+            // Thumbnail lookup failure must not prevent episode saving.
+          }
+        }
+
         const result = await env.DB.prepare(
           `INSERT INTO episodes
            (
@@ -476,6 +543,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
              episode,
              language,
              title,
+             thumbnail,
              url_360,
              url_720,
              url_1080,
@@ -483,7 +551,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
              url_720_server2,
              url_1080_server2
            )
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
         )
           .bind(
             animeId,
@@ -491,6 +559,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
             episode,
             String(data.language || "Hindi"),
             String(data.title || ""),
+            thumbnail,
             String(data.url_360 || ""),
             String(data.url_720 || ""),
             String(data.url_1080 || ""),
@@ -580,6 +649,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
              episode=?,
              language=?,
              title=?,
+             thumbnail=?,
              url_360=?,
              url_720=?,
              url_1080=?,
@@ -594,6 +664,7 @@ if (url.pathname.startsWith("/api/justanime/anime/") && request.method === "GET"
             episode,
             String(data.language || "Hindi"),
             String(data.title || ""),
+            String(data.thumbnail || ""),
             String(data.url_360 || ""),
             String(data.url_720 || ""),
             String(data.url_1080 || ""),
@@ -1392,6 +1463,11 @@ placeholder="Episode Number"
 <input
 id="episodeTitle"
 placeholder="Episode Title"
+>
+
+<input
+id="episodeThumbnail"
+placeholder="Episode Scene Thumbnail URL (image link)"
 >
 
 <input
@@ -2537,6 +2613,10 @@ document
 .value=ep.title || "";
 
 document
+.getElementById("episodeThumbnail")
+.value=ep.thumbnail || "";
+
+document
 .getElementById("url360")
 .value=ep.url_360 || "";
 
@@ -2692,6 +2772,12 @@ document
 .value
 .trim();
 
+const thumbnail=
+document
+.getElementById("episodeThumbnail")
+.value
+.trim();
+
 const url_360=
 document
 .getElementById("url360")
@@ -2781,6 +2867,7 @@ season,
 episode,
 language,
 title,
+thumbnail,
 url_360,
 url_720,
 url_1080,
