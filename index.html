@@ -2145,12 +2145,12 @@ container.appendChild(select);
 function createEpisodeSceneCard(ep, season){
 const button=document.createElement("div");
 button.className="episode episode-scene-card"+(Number(ep)===Number(currentEpisode)?" active":"");
-const thumbnail=episodeThumbnails[currentAnime]?.[String(season)]?.[String(ep)] || "";
-if(thumbnail){
+const poster=anime[currentAnime]?.poster || document.getElementById("detailPoster")?.src || "";
+if(poster){
 const img=document.createElement("img");
 img.className="episode-scene-image";
-img.src=thumbnail;
-img.alt="Episode "+ep+" scene";
+img.src=poster;
+img.alt=(anime[currentAnime]?.title || "Anime")+" poster";
 img.loading="lazy";
 img.onerror=()=>img.remove();
 button.appendChild(img);
